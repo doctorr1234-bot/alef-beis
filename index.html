@@ -53,7 +53,7 @@
   }
   .big .em { font-size: min(10vmin, 80px); line-height: 1.1; }
   .big:active { transform: translateY(7px); box-shadow: 0 2px 0 rgba(0,0,0,.22); }
-  .b1 { background: #ff6b6b; } .b2 { background: #8338ec; } .b3 { background: #06b77c; } .b4 { background: #ff9f1c; } .b5 { background: #1d6fd6; }
+  .b1 { background: #ff6b6b; } .b2 { background: #8338ec; } .b3 { background: #06b77c; } .b4 { background: #ff9f1c; } .b5 { background: #1d6fd6; } .b6 { background: #8a4f24; }
   .homebar { position: absolute; top: max(14px, env(safe-area-inset-top)); left: max(14px, env(safe-area-inset-left)); right: max(14px, env(safe-area-inset-right)); display: flex; justify-content: space-between; }
   .parentbtn { background: rgba(255,255,255,.75); border-radius: 30px; padding: 10px 16px; font-size: 16px; }
 
@@ -129,9 +129,26 @@
   #bbOuts { font-size: 15px; letter-spacing: 0; white-space: nowrap; }
   .ball.hit { animation: fly .9s forwards cubic-bezier(.3,.6,.6,1); z-index: 6; }
   @keyframes fly { to { transform: translate(-30vw, -110vh) scale(.15) rotate(900deg); } }
-  #bbCall { position: absolute; left: 0; right: 0; top: 40%; text-align: center; font-size: 13vmin; font-weight: 700; color: #ffd60a; -webkit-text-stroke: .5vmin #2b2350; paint-order: stroke fill; pointer-events: none; opacity: 0; z-index: 7; }
-  #bbCall.show { animation: callout 1.3s; }
+  #bbCall, #fbCall { position: absolute; left: 0; right: 0; top: 40%; text-align: center; font-size: 13vmin; font-weight: 700; color: #ffd60a; -webkit-text-stroke: .5vmin #2b2350; paint-order: stroke fill; pointer-events: none; opacity: 0; z-index: 7; }
+  #bbCall.show, #fbCall.show { animation: callout 1.3s; }
   @keyframes callout { 0% { opacity: 0; transform: scale(.3) rotate(-8deg); } 20% { opacity: 1; transform: scale(1.15) rotate(-4deg); } 75% { opacity: 1; transform: scale(1) rotate(-4deg); } 100% { opacity: 0; transform: scale(1.3) rotate(-4deg); } }
+
+  /* football */
+  #football { background: linear-gradient(180deg, #5ec8ff 0, #a8e6ff 14%, #2f8f4e 14%, #26753f 100%); }
+  .gridiron { position: relative; flex: 0 0 auto; width: 100%; max-width: 860px; height: 15vmin; min-height: 58px; margin: 2vmin 0 3vmin; border: 3px solid #fff; border-radius: 10px; overflow: hidden;
+    background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 2px), rgba(255,255,255,.75) calc(10% - 2px) 10%), #3fa85c; }
+  .ez { position: absolute; top: 0; bottom: 0; width: 10%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: max(13px, 3vmin); }
+  .ez.own { left: 0; background: #6c757d; } .ez.goal { right: 0; background: #ffb703; color: #2b2350; }
+  #fbBall { position: absolute; top: 50%; left: 26%; font-size: max(30px, 9vmin); transform: translate(-50%, -50%); transition: left .8s cubic-bezier(.3,.7,.4,1); }
+  #fbDown { font-size: 15px; letter-spacing: 0; white-space: nowrap; font-weight: 700; }
+  #football .prompt { margin-top: 0; }
+  .jersey { width: 27vmin; height: 27vmin; max-width: 21vw; max-height: 21vw; background: none; padding: 0; filter: drop-shadow(0 8px 0 rgba(0,0,0,.28)); animation: pop .5s backwards; }
+  .jersey span { display: grid; place-items: center; width: 100%; height: 100%; padding-top: 14%; color: #fff; font-size: min(14vmin, 11vw); background: #d62828;
+    clip-path: polygon(20% 0, 38% 0, 50% 11%, 62% 0, 80% 0, 100% 22%, 87% 41%, 78% 33%, 78% 100%, 22% 100%, 22% 33%, 13% 41%, 0 22%); }
+  .jersey.wrong { animation: shake .45s; opacity: .35; }
+  .jersey.right { animation: win .9s; }
+  .jersey.show { animation: bump .5s 3; }
+  .jersey.show span { background: #ffb703; color: #2b2350; }
 
   /* phones */
   @media (orientation: portrait) {
@@ -140,6 +157,7 @@
     .balloon { width: 24vmin; height: 29vmin; font-size: 14vmin; }
     .big { width: 40vmin; max-width: 170px; } .big .em { font-size: 15vmin; }
     .four .ball { width: 37vmin; height: 37vmin; max-width: none; max-height: none; font-size: 21vmin; } #baseball .choices.four { gap: 3vmin; }
+    .jersey { width: 40vmin; height: 40vmin; max-width: none; max-height: none; } .jersey span { font-size: 21vmin; } #football .choices { gap: 3vmin; }
   }
   @media (max-width: 520px) {
     .round { width: 52px; height: 52px; font-size: 25px; }
@@ -157,7 +175,9 @@
     .prompt { margin-top: 0; padding: 6px 18px; }
     .choice { width: 44vmin; height: 44vmin; max-width: 22vw; max-height: 22vw; font-size: min(28vmin, 14vw); }
     .ball { width: 46vmin; height: 46vmin; font-size: 26vmin; } .four .ball { max-width: 21vw; max-height: 21vw; font-size: min(26vmin, 12vw); }
-    #bbOuts { font-size: 12px; padding: 1px 8px; }
+    #bbOuts, #fbDown { font-size: 12px; padding: 1px 8px; }
+    .jersey { width: 44vmin; height: 44vmin; } .jersey span { font-size: min(24vmin, 11vw); }
+    .gridiron { height: 12vmin; min-height: 40px; margin: 4px 0 6px; max-width: 70vw; } #fbBall { font-size: 26px; }
     .stage { margin: 0; } .stagecard { width: 30vmin; height: 30vmin; } .stagecard .heb { font-size: 18vmin; }
     .diamond { position: absolute; left: max(84px, 12vw); top: 8px; margin: 0; width: 22vmin; height: 22vmin; min-width: 0; min-height: 0; transform: translateX(20px); }
     #baseball .prompt { margin-top: -2px; }
@@ -189,6 +209,19 @@
   .rec.has { background: #d8f5e6; border-color: #06b77c; }
   .rec.live { background: #ffd9d9; border-color: #e5383b; animation: pulse 1s infinite; }
   @keyframes pulse { 50% { opacity: .6; } }
+  .sum { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 14px; }
+  .sum div { background: #f0eefc; border-radius: 14px; padding: 10px 16px; min-width: 110px; }
+  .sum b { display: block; font-size: 24px; } .sum small { color: #4a4466; }
+  .rep { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; direction: rtl; margin-bottom: 8px; }
+  .rep div { border-radius: 12px; padding: 6px 2px; text-align: center; background: #eee; color: #777; border: 2px solid transparent; }
+  .rep .heb { font-size: 28px; display: block; } .rep small { font-size: 12px; direction: ltr; display: block; }
+  .rep .work { background: #ffd9d9; border-color: #e5383b; color: #7a1014; }
+  .rep .ok { background: #fff1c2; border-color: #f4a300; color: #6b4a00; }
+  .rep .good { background: #d8f5e6; border-color: #06b77c; color: #0a5a3f; }
+  .rep .new { background: #e7e4f5; color: #4a4466; }
+  .key { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: #4a4466; margin-bottom: 10px; }
+  .key i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 5px; vertical-align: -1px; }
+  #report ul { margin: 4px 0 12px; padding-left: 20px; line-height: 1.6; } #report h4 { margin: 14px 0 2px; }
   .plain { background: #2b2350; color: #fff; border-radius: 12px; padding: 10px 16px; font-size: 15px; margin: 10px 8px 0 0; }
   .plain.lite { background: #e7e4f5; color: #2b2350; }
   #recmsg { color: #c1121f; font-weight: 600; min-height: 1.3em; }
@@ -214,6 +247,7 @@
     <button class="big b4" data-go="twins"><span class="em">👀</span>Look-Alikes</button>
     <button class="big b3" data-go="balloons"><span class="em">🎈</span>Pop the Balloon</button>
     <button class="big b5" data-go="baseball"><span class="em">⚾</span>Baseball</button>
+    <button class="big b6" data-go="football"><span class="em">🏈</span>Football</button>
   </div>
 </section>
 
@@ -251,6 +285,15 @@
   <div id="bbCall"></div>
 </section>
 
+<!-- FOOTBALL -->
+<section id="football" class="screen">
+  <div class="bar"><button class="round" data-go="home">🏠</button><div class="mid"><div class="stars">Touchdowns: <span id="fbTD">0</span> / 2</div><div class="hearts" id="fbDown"></div></div><div class="stars">⭐ <span class="starcount">0</span></div></div>
+  <div class="gridiron"><div class="ez own"></div><div class="ez goal">TD</div><span id="fbBall">🏈</span></div>
+  <button class="prompt" id="fbPrompt">🔊 <span id="fbText"></span></button>
+  <div class="choices" id="fbPlayers"></div>
+  <div id="fbCall"></div>
+</section>
+
 <!-- DONE -->
 <section id="done" class="screen">
   <div class="trophy" id="doneIcon">🏆</div>
@@ -263,8 +306,11 @@
 <section id="parents" class="screen">
   <div class="in">
     <button class="plain" data-go="home">← Back to the game</button>
+
+    <h3>How <span class="kidname"></span> is doing</h3>
+    <div id="report"></div>
     <h3>Which letters to practice</h3>
-    <p>The two games only ask about the letters switched on (green) below. Tap any letter to switch it on or off, or use the buttons to switch a whole row of the Alef Beis at once. "Meet the Letters" always shows everything.</p>
+    <p>The games only ask about the letters switched on (green) below. Tap any letter to switch it on or off, or use the buttons to switch a whole row of the Alef Beis at once. "Meet the Letters" always shows everything.</p>
     <div class="sets" id="sets"></div>
     <p id="pickcount" style="margin-top:12px"></p>
     <div id="pickmsg" style="color:#c1121f;font-weight:600"></div>
@@ -346,6 +392,24 @@ chosen = chosen.filter(i => L[i]);
 if (chosen.length < MIN_LETTERS) chosen = L.filter(l => l.g === 0).map(l => l.id);
 const pool = () => L.filter(l => chosen.includes(l.id));
 
+/* ---------- Progress tracking (for the Parents report) ----------
+   For each letter: a = times asked, h = the last 12 results ('1' = right on the first tap, '0' = not),
+   x = which other letters were tapped instead and how often, t = when it was last asked. Kept on this device. */
+let stats = store.get('ab_stats', {}); if (!stats || typeof stats !== 'object') stats = {};
+let missedId = null;                       // the letter currently being asked has already had a wrong tap
+const statOf = l => stats[l.id] || (stats[l.id] = { a: 0, h: '', x: {}, t: 0 });
+function statEnd(target, ok = false) {     // the question is over
+  const s = statOf(target); s.a++; s.h = (s.h + (ok ? '1' : '0')).slice(-12); s.t = Date.now();
+  missedId = null; store.set('ab_stats', stats);
+}
+function stat(target, tapped) {
+  if (tapped === target) return statEnd(target, missedId !== target.id);
+  const s = statOf(target); s.x[tapped.id] = (s.x[tapped.id] || 0) + 1; missedId = target.id; store.set('ab_stats', stats);
+}
+const score = l => { const s = stats[l.id]; return s && s.h.length ? Math.round(100 * [...s.h].filter(c => c === '1').length / s.h.length) : null; };
+/* 'work' = under 70% right first time, 'ok' = 70–89%, 'good' = 90%+, 'new' = asked fewer than 3 times, 'none' = never asked */
+const level = l => { const s = stats[l.id], p = score(l); return !s || !s.a ? 'none' : s.h.length < 3 ? 'new' : p < 70 ? 'work' : p < 90 ? 'ok' : 'good'; };
+
 /* ---------- Sound ---------- */
 let actx;
 function tone(freq, dur, delay = 0, type = 'sine', vol = .18) {
@@ -388,7 +452,8 @@ try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } ca
 const GREAT = 'Great job, ' + KID + '!';
 const GOODTRY = 'Good try, ' + KID + '! Let\'s play again!';
 const CLIPS = { 'Where is': 'where', 'Pop the': 'pop', 'That is': 'that', 'Try again!': 'try', [GREAT]: 'great', 'Yay!': 'yay', 'Uh oh, it flew away!': 'uhoh', 'You are an Alef Beis star!': 'star',
-  'Hit the': 'hitthe', 'Hit!': 'hit', 'Home run!': 'homerun', 'Strike!': 'strike', [GOODTRY]: 'goodtry' };
+  'Hit the': 'hitthe', 'Hit!': 'hit', 'Home run!': 'homerun', 'Strike!': 'strike', [GOODTRY]: 'goodtry',
+  'Throw it to': 'throw', 'First down!': 'firstdown', 'Touchdown!': 'touchdown', 'Incomplete!': 'incomplete', 'Turnover!': 'turnover', 'Strike three, you\'re out!': 'strikeout' };
 const bufs = {}, bad = {};
 let curSrc = null;
 async function loadBuf(name, data) { try { const raw = await data; bufs[name] = await ctx().decodeAudioData(raw); } catch {} }
@@ -437,6 +502,7 @@ function go(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
   current = id; showStars();
   if (id === 'baseball') startBaseball();
+  if (id === 'football') startFootball();
   if (id === 'learn') startLearn();
   if (id === 'find') startFind();
   if (id === 'balloons') startBalloons();
@@ -523,12 +589,13 @@ function nextFind() {
 function chooseFind(l, b) {
   if (fLock || b.classList.contains('wrong')) return;
   if (l === fTarget) {
+    stat(fTarget, l);
     fLock = true; fDone++; fStreak++; b.classList.remove('pop'); b.classList.add('right');
     sfxYes(); confetti(); addStar(); dots($('findDots'), fDone, ROUND);
     say([pick([GREAT, 'Yay!']), fTarget]);
     setTimeout(() => { if (current !== 'find') return; fDone >= ROUND ? finish(fMode) : nextFind(); }, 2300);
   } else {
-    fStreak = 0; b.classList.remove('pop'); b.classList.add('wrong'); sfxNo();
+    stat(fTarget, l); fStreak = 0; b.classList.remove('pop'); b.classList.add('wrong'); sfxNo();
     say(['That is', l, 'Try again!', 'Where is', fTarget]);
   }
 }
@@ -591,7 +658,7 @@ function spawn() {
 }
 function flewAway() {
   if (current !== 'balloons' || bOver) return;
-  bLives--; bHint = true; bSpeed = Math.min(13, bSpeed + 1.5);
+  statEnd(bTarget); bLives--; bHint = true; bSpeed = Math.min(13, bSpeed + 1.5);
   drawBalloonHud(); tone(330, .2, 0, 'triangle', .15); tone(247, .35, .18, 'triangle', .15);
   const h = $('balHearts'), pr = $('balPrompt');
   h.classList.remove('lost'); pr.classList.remove('nudge'); void h.offsetWidth; h.classList.add('lost'); pr.classList.add('nudge');
@@ -602,6 +669,7 @@ function flewAway() {
 function tapBalloon(b) {
   if (bOver || b.classList.contains('popped')) return;
   if (b._l === bTarget) {
+    stat(bTarget, bTarget);
     const r = b.getBoundingClientRect(), boom = document.createElement('span');
     boom.className = 'boom'; boom.textContent = '💥'; boom.style.left = r.left + r.width / 2 + 'px'; boom.style.top = r.top + r.height / 2 + 'px';
     boom.addEventListener('animationend', () => boom.remove()); $('sky').appendChild(boom);
@@ -612,7 +680,7 @@ function tapBalloon(b) {
     const was = bTarget; setBalloonTarget(); drawBalloonHud();
     say([pick([GREAT, 'Yay!']), 'Pop the', bTarget]);
   } else {
-    b.classList.remove('wob'); void b.offsetWidth; b.classList.add('wob'); sfxNo();
+    stat(bTarget, b._l); b.classList.remove('wob'); void b.offsetWidth; b.classList.add('wob'); sfxNo();
     say(['That is', b._l, 'Pop the', bTarget]);
   }
 }
@@ -631,7 +699,7 @@ function drawBaseball() {
   $('bbOuts').textContent = 'Outs ' + '🔴'.repeat(bbOuts) + '⚪'.repeat(OUTS - bbOuts);
   const [x, y] = BASES[bbBase % 4], r = $('bbRunner'); r.style.left = x + '%'; r.style.top = y + '%';
 }
-function umpire(text) { const c = $('bbCall'); c.textContent = text; c.classList.remove('show'); void c.offsetWidth; c.classList.add('show'); }
+function umpire(text, id = 'bbCall') { const c = $(id); c.textContent = text; c.classList.remove('show'); void c.offsetWidth; c.classList.add('show'); }
 function nextPitch() {
   const p = pool(); bbLock = false; bbStrikes = 0;
   bbTarget = pick(p.filter(l => l !== bbTarget));
@@ -650,6 +718,7 @@ function nextPitch() {
 function swing(l, b) {
   if (bbLock || b.classList.contains('wrong')) return;
   if (l === bbTarget) {
+    stat(bbTarget, l);
     bbLock = true; b.style.animationDelay = '0s'; b.classList.add('hit');
     tone(1400, .04, 0, 'square', .2); tone(180, .12, 0, 'triangle', .3); sfxYes(); addStar();
     bbBase++;
@@ -660,17 +729,72 @@ function swing(l, b) {
     setTimeout(() => { if (current !== 'baseball') return; bbRuns >= RUNS_TO_WIN ? finish('baseball') : nextPitch(); }, home ? 3300 : 2200);
   } else if (++bbStrikes >= 3) {
     /* strikeout: the right ball is shown, the batter is out, and a new pitch comes (or the game ends on the third out) */
+    stat(bbTarget, l); statEnd(bbTarget);
     bbLock = true; bbOuts++; b.classList.add('wrong'); sfxNo(); tone(150, .4, .2, 'triangle', .15);
     umpire("STRIKE 3! OUT!"); drawBaseball();
     [...$('bbBalls').children].forEach(x => x.firstChild.textContent === bbTarget.h && x.classList.add('show'));
-    say(['Strike!', 'That is', l]);
-    setTimeout(() => { if (current !== 'baseball') return; bbOuts >= OUTS ? finish('baseball', false) : nextPitch(); }, 3000);
+    say(['Strike three, you\'re out!', 'That is', l]);
+    setTimeout(() => { if (current !== 'baseball') return; bbOuts >= OUTS ? finish('baseball', false) : nextPitch(); }, 3800);
   } else {
-    b.classList.add('wrong'); sfxNo(); umpire('STRIKE ' + bbStrikes + '!');
+    stat(bbTarget, l); b.classList.add('wrong'); sfxNo(); umpire('STRIKE ' + bbStrikes + '!');
     say(['Strike!', 'That is', l, 'Hit the', bbTarget]);
   }
 }
 $('bbPrompt').addEventListener('click', () => bbTarget && say(['Hit the', bbTarget]));
+
+/* ---------- Football ----------
+   Four receivers wear letters. Throwing to the right one is a first down and moves the ball 20 yards;
+   four of those is a touchdown, and 2 touchdowns win. A wrong throw is incomplete: the right receiver is shown,
+   a down is used, and a new play is called. Four incompletes in a row is a turnover and ends the game. */
+const FB_TDS = 2, DOWNS = ['1st', '2nd', '3rd', '4th'];
+let fbTarget = null, fbYard = 20, fbTD = 0, fbDown = 1, fbLock = false;
+function startFootball() { fbTarget = null; fbYard = 20; fbTD = 0; fbDown = 1; $('fbCall').classList.remove('show'); nextPlay(); }
+function drawFootball() {
+  $('fbTD').textContent = fbTD; $('fbDown').textContent = DOWNS[fbDown - 1] + ' down';
+  $('fbBall').style.left = (10 + fbYard * .8) + '%';
+}
+/* After a completed pass: sometimes "First down!", sometimes just praise, never the same thing twice in a row. */
+const CHEERS = [['First down!'], ['Yay!'], [GREAT], ['First down!', 'Yay!']];
+let lastCheer = null;
+function cheer() { return lastCheer = pick(CHEERS.filter(c => c !== lastCheer)); }
+function sayPlay() { say(['Throw it to', fbTarget]); }
+function nextPlay() {
+  const p = pool(); fbLock = false;
+  fbTarget = pick(p.filter(l => l !== fbTarget));
+  const opts = shuffle([fbTarget, ...shuffle(p.filter(l => l !== fbTarget)).slice(0, Math.min(4, p.length) - 1)]);
+  $('fbText').textContent = 'Throw it to ' + fbTarget.n + '!';
+  const box = $('fbPlayers'); box.innerHTML = '';
+  opts.forEach((l, i) => {
+    const b = document.createElement('button'); b.className = 'jersey heb'; b.style.animationDelay = i * .1 + 's';
+    b.innerHTML = '<span></span>'; b.firstChild.textContent = l.h;
+    b.addEventListener('click', () => throwTo(l, b)); box.appendChild(b);
+  });
+  drawFootball(); sayPlay();
+}
+function throwTo(l, b) {
+  if (fbLock) return; fbLock = true; b.style.animationDelay = '0s';
+  if (l === fbTarget) {
+    stat(fbTarget, l);
+    b.classList.add('right'); sfxYes(); addStar(); fbYard += 20; fbDown = 1;
+    const td = fbYard >= 100;
+    if (td) { fbTD++; fbYard = 106; umpire('TOUCHDOWN! 🎉', 'fbCall'); confetti(34); } else { umpire('FIRST DOWN!', 'fbCall'); confetti(10); }
+    drawFootball(); say(td ? ['Touchdown!', GREAT] : cheer());
+    setTimeout(() => {
+      if (current !== 'football') return;
+      if (td) { if (fbTD >= FB_TDS) return finish('football'); fbYard = 20; }
+      nextPlay();
+    }, td ? 3300 : 2500);
+  } else {
+    stat(fbTarget, l); statEnd(fbTarget);
+    b.classList.add('wrong'); sfxNo();
+    [...$('fbPlayers').children].forEach(x => x.firstChild.textContent === fbTarget.h && x.classList.add('show'));
+    const over = fbDown >= 4;
+    if (over) umpire('TURNOVER!', 'fbCall'); else { umpire('INCOMPLETE!', 'fbCall'); fbDown++; }
+    drawFootball(); say([over ? 'Turnover!' : 'Incomplete!', 'That is', l]);
+    setTimeout(() => { if (current !== 'football') return; over ? finish('football', false) : nextPlay(); }, 3400);
+  }
+}
+$('fbPrompt').addEventListener('click', () => fbTarget && sayPlay());
 
 /* ---------- Parents: groups + voice recordings ---------- */
 let db = null, mic = null, recorder = null, liveId = null, recTimer = null;
@@ -690,7 +814,36 @@ function loadRecs() {
 }
 openDb().then(loadRecs);
 
+function drawReport() {
+  const box = $('report'), by = lv => L.filter(l => level(l) === lv), names = a => a.map(l => l.h + ' ' + l.n).join(', ');
+  const asked = L.reduce((n, l) => n + (stats[l.id] ? stats[l.id].a : 0), 0);
+  if (!asked) { box.innerHTML = '<p>Nothing to report yet. Once the games have been played, this shows which letters he knows and which need work.</p>'; return; }
+  const recent = L.flatMap(l => stats[l.id] ? [...stats[l.id].h] : []), pct = Math.round(100 * recent.filter(c => c === '1').length / recent.length);
+  const last = Math.max(...L.map(l => stats[l.id] ? stats[l.id].t : 0));
+  const work = by('work').sort((a, b) => score(a) - score(b)), ok = by('ok'), good = by('good'), fresh = by('new'), none = by('none');
+  const pairs = {};                                   // mix-ups, counted in both directions
+  L.forEach(l => Object.entries((stats[l.id] || {}).x || {}).forEach(([o, n]) => { const k = [l.id, +o].sort((a, b) => a - b).join('-'); pairs[k] = (pairs[k] || 0) + n; }));
+  const mix = Object.entries(pairs).filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  const esc = t => t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  let h = '<div class="sum"><div><b>' + pct + '%</b><small>right on the first tap (recent)</small></div><div><b>' + asked + '</b><small>questions answered</small></div><div><b>' +
+    good.length + ' / ' + L.length + '</b><small>letters he knows well</small></div><div><b>' + new Date(last).toLocaleDateString() + '</b><small>last played</small></div></div>';
+  h += '<h4>Needs work</h4>' + (work.length ? '<ul>' + work.map(l => '<li><b>' + esc(l.h + ' ' + l.n) + '</b>: right first time ' + score(l) + '% of the last ' + stats[l.id].h.length + '</li>').join('') + '</ul>'
+    : '<p>No letter is under 70% right now.</p>');
+  if (mix.length) h += '<h4>Letters he mixes up</h4><ul>' + mix.map(([k, n]) => { const [a, b] = k.split('-').map(i => L[i]); return '<li>' + esc(a.h + ' ' + a.n + ' and ' + b.h + ' ' + b.n) + ' (' + n + ' times)</li>'; }).join('') + '</ul>';
+  if (ok.length) h += '<h4>Getting there</h4><p>' + esc(names(ok)) + '</p>';
+  if (good.length) h += '<h4>Knows well</h4><p>' + esc(names(good)) + '</p>';
+  if (none.length) h += '<h4>Not practiced yet</h4><p>' + esc(names(none)) + '</p>';
+  h += '<h4>Every letter</h4><div class="key"><span><i style="background:#e5383b"></i>needs work (under 70%)</span><span><i style="background:#f4a300"></i>getting there</span><span><i style="background:#06b77c"></i>knows well (90%+)</span><span><i style="background:#c9c4e6"></i>just started</span><span><i style="background:#ddd"></i>not practiced</span></div><div class="rep">' +
+    L.map(l => { const s = stats[l.id], lv = level(l); return '<div class="' + lv + '"><span class="heb">' + l.h + '</span><small>' + (lv === 'none' ? '–' : score(l) + '% · ' + s.a + '×') + '</small></div>'; }).join('') + '</div>' +
+    '<p style="font-size:13px">Each tile shows how often he got the letter right on the first tap, over the last 12 times it was asked, and how many times it has been asked in all.</p>';
+  box.innerHTML = h;
+  const add = (label, fn, lite) => { const b = document.createElement('button'); b.className = 'plain' + (lite ? ' lite' : ''); b.textContent = label; b.addEventListener('click', fn); box.appendChild(b); };
+  const focus = [...work, ...ok];
+  if (focus.length >= MIN_LETTERS) add('Practice only the letters that need work (' + focus.length + ')', () => setChosen(focus.map(l => l.id)));
+  add('Clear the report', () => { if (confirm('Clear all of the progress records?')) { stats = {}; store.set('ab_stats', stats); drawParents(); } }, true);
+}
 function drawParents() {
+  drawReport(); document.querySelectorAll('.kidname').forEach(e => e.textContent = KID);
   const s = $('sets'); s.innerHTML = '';
   const quick = (label, ids) => {
     const allOn = ids.every(i => chosen.includes(i));
