@@ -17,7 +17,10 @@
     background: linear-gradient(180deg, #5ec8ff 0%, #a8e6ff 55%, #c9f7c0 100%);
     color: #2b2350; user-select: none; -webkit-user-select: none; touch-action: manipulation;
   }
-  .heb { font-family: "Arial Hebrew", "SF Hebrew", "Noto Sans Hebrew", "Rubik", "Arial", sans-serif; font-weight: 700; line-height: 1; }
+  @font-face { font-family: "AB Block"; src: url(fonts/block.woff2) format("woff2"); font-weight: 700; font-display: swap; }
+  @font-face { font-family: "AB Siddur"; src: url(fonts/siddur.woff2) format("woff2"); font-weight: 700; font-display: swap; }
+  @font-face { font-family: "AB Chunky"; src: url(fonts/chunky.woff2) format("woff2"); font-weight: 700; font-display: swap; }
+  .heb { font-family: var(--heb, "AB Siddur"), "Arial Hebrew", "SF Hebrew", "Noto Sans Hebrew", "Arial", sans-serif; font-weight: 700; line-height: 1; }
   button { font: inherit; color: inherit; border: 0; cursor: pointer; }
 
   .screen { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center;
@@ -316,6 +319,10 @@
     <div id="pickmsg" style="color:#c1121f;font-weight:600"></div>
     <div class="recgrid" id="pickgrid"></div>
 
+    <h3>Letter style</h3>
+    <p>Choose how the letters are drawn, so he learns to recognize them in different print. "Mix" changes the style with every question.</p>
+    <div class="sets" id="styleOpt"></div>
+
     <h3>Baseball</h3>
     <p>With four balls, three wrong taps is a strikeout, and three outs end the game. With three balls there are no strikeouts.</p>
     <div class="sets" id="bbOpt"></div>
@@ -391,6 +398,19 @@ if (!Array.isArray(chosen)) chosen = L.filter(l => l.g === 0).map(l => l.id);
 chosen = chosen.filter(i => L[i]);
 if (chosen.length < MIN_LETTERS) chosen = L.filter(l => l.g === 0).map(l => l.id);
 const pool = () => L.filter(l => chosen.includes(l.id));
+
+/* ---------- Letter style (chosen under Parents) ----------
+   'block', 'siddur' or 'chunky' shows every letter in that style; 'mix' changes the style with every question. */
+const STYLES = { siddur: ['Siddur', 'AB Siddur'], block: ['Block', 'AB Block'], chunky: ['Chunky', 'AB Chunky'] };
+let styleMode = store.get('ab_style', 'siddur'); if (!STYLES[styleMode] && styleMode !== 'mix') styleMode = 'siddur';
+let styleNow = 'siddur';
+function newStyle() {            // call at the start of each question
+  styleNow = styleMode === 'mix' ? pick(Object.keys(STYLES).filter(k => k !== styleNow)) : styleMode;
+  document.documentElement.style.setProperty('--heb', '"' + STYLES[styleNow][1] + '"');
+}
+const mixFont = () => styleMode === 'mix' ? '"' + STYLES[pick(Object.keys(STYLES))][1] + '", "Arial Hebrew", sans-serif' : '';
+newStyle();
+if (document.fonts) Object.values(STYLES).forEach(([, f]) => document.fonts.load('700 40px "' + f + '"', 'אבּ'));
 
 /* ---------- Progress tracking (for the Parents report) ----------
    For each letter: a = times asked, h = the last 12 results ('1' = right on the first tap, '0' = not),
@@ -498,6 +518,7 @@ function confetti(n = 22) {
 let current = 'home', lastGame = 'find';
 function go(id) {
   hush(); stopBalloons(); stopMic();
+  if (styleMode === 'mix') document.documentElement.style.setProperty('--heb', '"AB Siddur"');   // menus stay in Siddur; each question picks its own
   if (id === 'twins') { fMode = 'twins'; id = 'find'; } else if (id === 'find') fMode = 'find';
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
   current = id; showStars();
@@ -531,6 +552,8 @@ function startLearn() {
 }
 function showLetter(i, speak) {
   li = (i + L.length) % L.length; const l = L[li], c = $('stagecard');
+  if (speak && styleMode === 'mix') { newStyle(); $('stageHeb').style.fontFamily = '"' + STYLES[styleNow][1] + '"'; document.documentElement.style.setProperty('--heb', '"AB Siddur"'); }
+  else $('stageHeb').style.fontFamily = '';
   $('stageHeb').textContent = l.h; $('stageName').textContent = l.n; c.style.background = color(l);
   c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
   [...$('grid').children].forEach((t, k) => t.classList.toggle('sel', k === li));
@@ -565,7 +588,7 @@ function twinFamilies() {
 let fTarget = null, fDone = 0, fStreak = 0, fLock = false, fMode = 'find';
 function startFind() { fDone = 0; fStreak = 0; fTarget = null; nextFind(); }
 function nextFind() {
-  fLock = false; let opts;
+  newStyle(); fLock = false; let opts;
   if (fMode === 'twins') {
     const fams = twinFamilies(), fam = pick(fams);
     const askable = fam.filter(l => chosen.includes(l.id)), from = askable.length ? askable : fam;
@@ -609,6 +632,7 @@ const HEARTS = 5;
 let bTarget = null, bDone = 0, bTimer = null, bLane = 0, bLives = HEARTS, bSpeed = 11, bHint = false, bOver = false;
 function stopBalloons() { clearTimeout(bTimer); bTimer = null; $('sky').innerHTML = ''; }
 function startBalloons() {
+  if (styleMode !== 'mix') newStyle();
   bDone = 0; bTarget = null; bLives = HEARTS; bSpeed = 11; bHint = false; bOver = false;
   setBalloonTarget(); drawBalloonHud(); say(['Pop the', bTarget]); bTimer = setTimeout(spawnLoop, bSpeed * 120);
 }
@@ -642,7 +666,7 @@ function spawn() {
   const l = hasCountingTarget() ? pick(p.filter(x => x !== bTarget)) : bTarget;
   const b = document.createElement('button'); b.className = 'balloon heb'; b._l = l; b._counts = l === bTarget;
   b.innerHTML = '<span></span>'; b.firstChild.textContent = l.h;
-  b.style.background = pick(COLORS);
+  b.style.background = pick(COLORS); b.style.fontFamily = mixFont();      // in Mix, each balloon gets its own style
   bLane = (bLane + 2 + Math.floor(Math.random() * 2)) % 5;           // 5 lanes, never the same one twice in a row
   b.style.left = (4 + bLane * 18 + Math.random() * 4) + '%';
   const d = bSpeed + Math.random() * 2;
@@ -701,7 +725,7 @@ function drawBaseball() {
 }
 function umpire(text, id = 'bbCall') { const c = $(id); c.textContent = text; c.classList.remove('show'); void c.offsetWidth; c.classList.add('show'); }
 function nextPitch() {
-  const p = pool(); bbLock = false; bbStrikes = 0;
+  newStyle(); const p = pool(); bbLock = false; bbStrikes = 0;
   bbTarget = pick(p.filter(l => l !== bbTarget));
   const n = Math.min(bbFour ? 4 : 3, p.length);
   const opts = shuffle([bbTarget, ...shuffle(p.filter(l => l !== bbTarget)).slice(0, n - 1)]);
@@ -759,7 +783,7 @@ let lastCheer = null;
 function cheer() { return lastCheer = pick(CHEERS.filter(c => c !== lastCheer)); }
 function sayPlay() { say(['Throw it to', fbTarget]); }
 function nextPlay() {
-  const p = pool(); fbLock = false;
+  newStyle(); const p = pool(); fbLock = false;
   fbTarget = pick(p.filter(l => l !== fbTarget));
   const opts = shuffle([fbTarget, ...shuffle(p.filter(l => l !== fbTarget)).slice(0, Math.min(4, p.length) - 1)]);
   $('fbText').textContent = 'Throw it to ' + fbTarget.n + '!';
@@ -863,6 +887,18 @@ function drawParents() {
     pg.appendChild(b);
   });
   $('pickcount').textContent = chosen.length + ' of ' + L.length + ' letters in the games';
+  const so = $('styleOpt'); so.innerHTML = '';
+  [...Object.keys(STYLES), 'mix'].forEach(k => {
+    const b = document.createElement('button'); b.className = 'set' + (styleMode === k ? ' on' : '');
+    b.style.cssText = 'font-size:15px;direction:ltr;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:110px';
+    const sample = document.createElement('span'); sample.textContent = k === 'mix' ? '' : 'אבּג'; sample.style.cssText = 'font-size:34px;font-weight:700;direction:rtl;line-height:1.2';
+    if (k === 'mix') Object.values(STYLES).forEach(([, f], i) => { const c = document.createElement('span'); c.textContent = ['א', 'בּ', 'ג'][i]; c.style.fontFamily = '"' + f + '"'; sample.appendChild(c); });
+    else sample.style.fontFamily = '"' + STYLES[k][1] + '"';
+    const label = document.createElement('span'); label.textContent = k === 'mix' ? 'Mix' : STYLES[k][0];
+    b.append(sample, label);
+    b.addEventListener('click', () => { styleMode = k; store.set('ab_style', k); newStyle(); if (k === 'mix') document.documentElement.style.setProperty('--heb', '"AB Siddur"'); drawParents(); });
+    so.appendChild(b);
+  });
   const bo = $('bbOpt'); bo.innerHTML = '';
   [[true, '4 balls, with strikeouts'], [false, '3 balls, no strikeouts']].forEach(([v, label]) => {
     const b = document.createElement('button'); b.className = 'set' + (bbFour === v ? ' on' : ''); b.textContent = label;
