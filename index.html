@@ -186,12 +186,64 @@
     #baseball .prompt { margin-top: -2px; }
   }
 
+  /* avatar and store */
+  .goal { display: flex; align-items: center; gap: 10px; background: #fff; border-radius: 22px; padding: 6px 12px 6px 8px; box-shadow: 0 6px 0 rgba(0,0,0,.18); font-size: max(15px, 2.7vmin); font-weight: 700; text-align: left; max-width: 94vw; flex: 0 0 auto; }
+  .goal:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.18); }
+  .goal svg { width: 54px; height: 70px; flex: 0 0 auto; } .goal svg.th { width: 50px; height: 50px; }
+  .goal.ready, .item.can { animation: glow 1.2s infinite; }
+  @keyframes glow { 50% { box-shadow: 0 6px 0 rgba(0,0,0,.18), 0 0 0 6px #ffe066; } }
+  .meter { display: block; height: 10px; width: 100%; background: #e7e4f5; border-radius: 6px; overflow: hidden; }
+  .meter i { display: block; height: 100%; background: linear-gradient(90deg, #ffd60a, #ff9f1c); border-radius: 6px; transition: width .4s; }
+  .top { display: flex; align-items: center; justify-content: center; gap: 4vmin; flex-wrap: wrap; flex: 0 0 auto; }
+  .hd { display: flex; flex-direction: column; align-items: center; gap: 2vh; }
+  .goal.home { flex-direction: column; gap: 2px; padding: 8px 14px 6px; text-align: center; }
+  .goal.home svg { width: auto; height: max(150px, 34vmin); aspect-ratio: 200/276; }
+  #shop { gap: 8px; }
+  .shopbody { flex: 1 1 auto; min-height: 0; width: 100%; max-width: 1000px; display: flex; gap: 12px; }
+  .me { flex: 0 0 38%; min-width: 0; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+  #meSvg { display: grid; place-items: center; }
+  #meSvg svg { width: min(34vw, 40vh); aspect-ratio: 200/274; }
+  #meSvg.hop svg { animation: pop .5s; }
+  .offer { min-height: 92px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; font-weight: 700; font-size: max(15px, 2.6vmin); color: #2b2350; }
+  .offer .meter { width: 160px; }
+  .buy { background: #06b77c; color: #fff; border-radius: 20px; padding: 10px 22px; font-size: max(18px, 3.2vmin); font-weight: 700; box-shadow: 0 6px 0 rgba(0,0,0,.22); animation: bump 1s infinite; }
+  .buy.play { background: #1d6fd6; animation: none; }
+  .buy:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.22); }
+  .shelf { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 8px; background: rgba(255,255,255,.55); border-radius: 22px; padding: 8px; }
+  .tabs { display: flex; gap: 6px; flex: 0 0 auto; }
+  .tab { flex: 1; background: #fff; border-radius: 14px; font-size: 26px; padding: 6px 0; opacity: .65; }
+  .tab.on { opacity: 1; background: #ffe066; box-shadow: 0 4px 0 rgba(0,0,0,.18); }
+  .items { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; align-content: start; padding: 6px 6px 12px; }
+  .item { background: #fff; border-radius: 16px; padding: 4px 4px 6px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 12px; font-weight: 700; border: 3px solid transparent; box-shadow: 0 4px 0 rgba(0,0,0,.14); }
+  .item svg { width: 100%; height: 66px; }
+  .item .tag { font-size: 13px; border-radius: 10px; padding: 1px 9px; background: #eee; white-space: nowrap; }
+  .item .meter { height: 6px; width: 80%; }
+  .item.locked svg { filter: grayscale(.7); opacity: .65; }
+  .item.can { border-color: #ffb703; } .item.can .tag { background: #ffb703; }
+  .item.worn { border-color: #06b77c; background: #d8f5e6; } .item.worn .tag { background: #06b77c; color: #fff; }
+  .item.try { border-color: #8338ec; background: #efe6ff; }
+  @media (orientation: portrait) {
+    .shopbody { flex-direction: column; gap: 8px; }
+    .me { flex: 0 0 auto; flex-direction: row; gap: 4px; }
+    #meSvg svg { width: auto; height: 30vh; }
+    .offer { flex: 1 1 0; min-width: 0; }
+  }
+  @media (max-height: 480px) and (orientation: landscape) {
+    .me { flex-basis: 34%; flex-direction: row; gap: 4px; } #meSvg svg { width: auto; height: 66vh; } .offer { flex: 1 1 0; min-width: 0; font-size: 13px; } .offer .meter { width: 100px; }
+    .buy { font-size: 15px; padding: 8px 12px; } .tab { font-size: 20px; padding: 3px 0; }
+    .goal svg { width: 40px; height: 52px; } .goal.home svg { height: 38vh; } .goal.home { font-size: 13px; }
+  }
+
   /* done */
   #done { justify-content: center; gap: 3vh; text-align: center; }
   #done .trophy { font-size: 26vmin; animation: hop 1.4s infinite; }
   #done h2 { font-size: 8vmin; margin: 0; color: #fff; text-shadow: 0 4px 0 #2b6cb0; }
   .row { display: flex; gap: 4vmin; }
   .row .round { width: 16vmin; height: 16vmin; min-width: 84px; min-height: 84px; font-size: 8vmin; }
+  @media (max-height: 480px) and (orientation: landscape) {
+    #done { gap: 1vh; justify-content: safe center; overflow-y: auto; } #done .trophy { font-size: 12vmin; animation: none; } #done .stars { font-size: 20px !important; } #done h2 { font-size: 7vmin; }
+    .row .round { min-width: 56px; min-height: 56px; width: 14vmin; height: 14vmin; font-size: 7vmin; }
+  }
 
   /* confetti */
   .conf { position: fixed; top: -8vh; font-size: 5vmin; pointer-events: none; z-index: 50; animation: fall linear forwards; }
@@ -242,8 +294,11 @@
     <button class="parentbtn" data-go="parents">⚙️ Parents</button>
     <div class="stars">⭐ <span class="starcount">0</span></div>
   </div>
-  <div class="title heb"><span>א</span><span>בּ</span><span>ג</span></div>
-  <h1><span id="kidTitle"></span>Alef Beis!</h1>
+  <div class="top">
+    <button class="goal home" data-go="shop"></button>
+    <div class="hd"><div class="title heb"><span>א</span><span>בּ</span><span>ג</span></div>
+    <h1><span id="kidTitle"></span>Alef Beis!</h1></div>
+  </div>
   <div class="menu">
     <button class="big b1" data-go="learn"><span class="em">📖</span>Meet the Letters</button>
     <button class="big b2" data-go="find"><span class="em">🔍</span>Find the Letter</button>
@@ -302,7 +357,17 @@
   <div class="trophy" id="doneIcon">🏆</div>
   <h2 id="doneText">Great job!</h2>
   <div class="stars" style="font-size:6vmin">⭐ <span class="starcount">0</span></div>
+  <button class="goal" data-go="shop"></button>
   <div class="row"><button class="round" id="again">🔁</button><button class="round" data-go="home">🏠</button></div>
+</section>
+
+<!-- STORE -->
+<section id="shop" class="screen">
+  <div class="bar"><button class="round" data-go="home">🏠</button><div class="stars">🛍️ <span class="kidname"></span>'s Store</div><div class="stars">⭐ <span class="starcount">0</span></div></div>
+  <div class="shopbody">
+    <div class="me"><div id="meSvg"></div><div class="offer" id="offer"></div></div>
+    <div class="shelf"><div class="tabs" id="tabs"></div><div class="items" id="items"></div></div>
+  </div>
 </section>
 
 <!-- PARENTS -->
@@ -332,7 +397,12 @@
     <div id="recmsg"></div>
     <div class="recgrid" id="recgrid"></div>
     <button class="plain lite" id="clearRec">Delete all recordings</button>
+
+    <h3>Stars and the store</h3>
+    <p>Every right answer earns a star. <span class="kidname"></span> spends stars in his store to dress up his character, so the star count goes down when he buys something. You can hand out bonus stars as a reward, or start over.</p>
+    <button class="plain" id="bonusStars">Give 10 bonus stars</button>
     <button class="plain lite" id="resetStars">Reset stars to 0</button>
+    <button class="plain lite" id="resetAv">Take back everything from the store</button>
   </div>
 </section>
 
@@ -387,8 +457,11 @@ const store = { get(k, d) { try { const v = localStorage.getItem(k); return v ==
 let stars = store.get('ab_stars', 0);
 function showStars(bump) {
   document.querySelectorAll('.starcount').forEach(e => { e.textContent = stars; if (bump) { e.parentElement.classList.remove('bump'); void e.parentElement.offsetWidth; e.parentElement.classList.add('bump'); } });
+  if (typeof drawGoals === 'function' && typeof av !== 'undefined') drawGoals();
 }
-function addStar() { stars++; store.set('ab_stars', stars); showStars(true); }
+function addStar() {
+  stars++; store.set('ab_stars', stars); showStars(true);
+}
 
 /* ---------- Practice groups ---------- */
 /* ---------- Which letters the games ask about (chosen one by one under Parents) ---------- */
@@ -504,6 +577,130 @@ async function say(parts) {
 if (window.speechSynthesis) speechSynthesis.getVoices();
 L.forEach(l => preload('l' + l.id)); Object.values(CLIPS).forEach(preload);
 
+/* ---------- Avatar and store ----------
+   Stars are spent here. Each item: id, slot (hat / face / outfit / hand / pet), n = name, p = price in stars,
+   d = drawing (outfits use o = colors and extra drawings instead). */
+const SKIN = '#f6c9a0';
+const emo = (e, x, y, s) => `<text x="${x}" y="${y}" font-size="${s}" text-anchor="middle">${e}</text>`;
+const word = (t, x, y, s, c = '#fff') => `<text x="${x}" y="${y}" font-size="${s}" font-weight="900" text-anchor="middle" fill="${c}" font-family="Arial, sans-serif">${t}</text>`;
+const belt = c => `<rect x="62" y="186" width="76" height="6" fill="${c}"/>`;
+const STACHE = c => `<path d="M100 97q-8-8-18-2q-6 4-10 0q4 12 16 10q8-1 12-8q4 7 12 8q12 2 16-10q-4 4-10 0q-10-6-18 2z" fill="${c}"/>`;
+const ITEMS = [
+  // hats
+  { id: 'kippah', slot: 'hat', n: 'Yarmulke', p: 0, d: `<path d="M68 52Q100 20 132 52Q100 43 68 52z" fill="#1d3f8f"/><path d="M68 52Q100 43 132 52" fill="none" stroke="#ffd60a" stroke-width="2.5"/>` },
+  { id: 'party', slot: 'hat', n: 'Party Hat', p: 3, d: `<path d="M76 50L100-8L124 50z" fill="#ff4d6d"/><circle cx="100" cy="18" r="4" fill="#ffd60a"/><circle cx="91" cy="38" r="4" fill="#fff"/><circle cx="109" cy="36" r="4" fill="#ffd60a"/><circle cx="100" cy="-10" r="8" fill="#ffd60a"/>` },
+  { id: 'cap', slot: 'hat', n: 'Baseball Cap', p: 5, d: `<path d="M60 58Q58 22 100 22Q142 22 140 58z" fill="#e5383b"/><path d="M134 50q34 0 40 14q-22 4-42-2z" fill="#b3202c"/><circle cx="100" cy="22" r="4" fill="#b3202c"/>` + word('D', 100, 51, 22) },
+  { id: 'beanie', slot: 'hat', n: 'Spinner Hat', p: 8, d: `<path d="M62 56Q60 24 100 24Q140 24 138 56z" fill="#ffd60a"/><path d="M100 24Q84 30 82 56h36Q116 30 100 24z" fill="#e5383b"/><path d="M100 24V10" stroke="#2b2350" stroke-width="3"/><ellipse cx="86" cy="9" rx="14" ry="5" fill="#3a86ff"/><ellipse cx="114" cy="9" rx="14" ry="5" fill="#06b77c"/><circle cx="100" cy="9" r="4" fill="#2b2350"/>` },
+  { id: 'cowboy', slot: 'hat', n: 'Cowboy Hat', p: 10, d: `<ellipse cx="100" cy="50" rx="64" ry="11" fill="#8a5a2b"/><path d="M70 50Q66 8 88 16Q100 24 112 16Q134 8 130 50z" fill="#a66a35"/><path d="M70 40q30 8 60 0v9q-30 8-60 0z" fill="#5c3a17"/>` },
+  { id: 'pirate', slot: 'hat', n: 'Pirate Hat', p: 12, d: `<path d="M50 58Q60 10 100 4Q140 10 150 58Q100 38 50 58z" fill="#22223b"/><path d="M58 50Q100 32 142 50" fill="none" stroke="#ffd60a" stroke-width="3"/>` + word('☠', 100, 34, 22) },
+  { id: 'chef', slot: 'hat', n: 'Chef Hat', p: 12, d: `<path d="M68 34a17 17 0 0 1 10-30a23 23 0 0 1 44 0a17 17 0 0 1 10 30z" fill="#fff" stroke="#cfd6e4" stroke-width="2"/><rect x="72" y="32" width="56" height="22" fill="#fff" stroke="#cfd6e4" stroke-width="2"/>` },
+  { id: 'helmet', slot: 'hat', n: 'Football Helmet', p: 15, d: `<path d="M54 84Q50 26 100 24Q150 26 146 84V100Q140 108 130 104V70Q100 58 70 70V104Q60 108 54 100z" fill="#1d6fd6"/><path d="M96 24h8v38h-8z" fill="#fff"/><path d="M70 98H130M70 108Q100 118 130 108M100 98v15" fill="none" stroke="#cfd6e4" stroke-width="4" stroke-linecap="round"/>` },
+  { id: 'dinohood', slot: 'hat', n: 'Dino Head', p: 18, d: `<path d="M90 24l10-18 10 18z" fill="#2e7d32"/><path fill-rule="evenodd" d="M100 22a52 54 0 1 0 .1 0zM100 46a34 36 0 1 0 .1 0z" fill="#4caf50"/><circle cx="80" cy="34" r="8" fill="#fff"/><circle cx="120" cy="34" r="8" fill="#fff"/><circle cx="81" cy="35" r="4" fill="#22223b"/><circle cx="119" cy="35" r="4" fill="#22223b"/><path d="M82 50l5 9 5-9zM95 47l5 9 5-9zM108 50l5 9 5-9z" fill="#fff"/>` },
+  { id: 'spacehelmet', slot: 'hat', n: 'Space Helmet', p: 20, d: `<circle cx="100" cy="76" r="54" fill="rgba(170,215,255,.3)" stroke="#dfe6f0" stroke-width="7"/><path d="M64 52q10-20 32-24" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".85"/>` },
+  { id: 'crown', slot: 'hat', n: 'Crown', p: 30, d: `<path d="M64 54L60 14L82 36L100 8L118 36L140 14L136 54z" fill="#ffd60a" stroke="#e0a800" stroke-width="2"/><circle cx="100" cy="42" r="5" fill="#e5383b"/><circle cx="80" cy="45" r="4" fill="#3a86ff"/><circle cx="120" cy="45" r="4" fill="#06b77c"/>` },
+  // faces
+  { id: 'nose', slot: 'face', n: 'Clown Nose', p: 3, d: `<circle cx="100" cy="90" r="9" fill="#e5383b"/><circle cx="97" cy="87" r="2.5" fill="#fff" opacity=".7"/>` },
+  { id: 'eyeblack', slot: 'face', n: 'Game Face', p: 4, d: `<rect x="77" y="88" width="17" height="5" rx="2.5" fill="#22223b"/><rect x="106" y="88" width="17" height="5" rx="2.5" fill="#22223b"/>` },
+  { id: 'stache', slot: 'face', n: 'Mustache', p: 5, d: STACHE('#5c3a17') },
+  { id: 'shades', slot: 'face', n: 'Sunglasses', p: 6, d: `<rect x="70" y="70" width="27" height="19" rx="7" fill="#111"/><rect x="103" y="70" width="27" height="19" rx="7" fill="#111"/><path d="M96 76h8M70 76l-10-4M130 76l10-4" stroke="#111" stroke-width="4"/><path d="M75 75l8-2M108 75l8-2" stroke="#fff" stroke-width="2" opacity=".6"/>` },
+  { id: 'mask', slot: 'face', n: 'Hero Mask', p: 10, d: `<path d="M61 72q39-12 78 0v14q-18 9-31-2h-16q-13 11-31 2z" fill="#8338ec"/><circle cx="86" cy="80" r="6.5" fill="#fff"/><circle cx="114" cy="80" r="6.5" fill="#fff"/><circle cx="86" cy="80" r="3.5" fill="#2b2350"/><circle cx="114" cy="80" r="3.5" fill="#2b2350"/>` },
+  { id: 'groucho', slot: 'face', n: 'Silly Glasses', p: 10, d: `<circle cx="85" cy="79" r="13" fill="rgba(255,255,255,.35)" stroke="#111" stroke-width="4"/><circle cx="115" cy="79" r="13" fill="rgba(255,255,255,.35)" stroke="#111" stroke-width="4"/><circle cx="85" cy="80" r="4" fill="#2b2350"/><circle cx="115" cy="80" r="4" fill="#2b2350"/><ellipse cx="100" cy="92" rx="9" ry="11" fill="#f0a987"/><g transform="translate(0 7)">` + STACHE('#111') + `</g>` },
+  // outfits
+  { id: 'tee', slot: 'outfit', n: 'T-Shirt', p: 0, o: { shirt: '#3a86ff', sleeve: '#3a86ff', legs: '#2b2350', shoes: '#e5383b', front: emo('⭐', 100, 166, 26) } },
+  { id: 'hoops', slot: 'outfit', n: 'Basketball', p: 10, o: { shirt: '#ff9f1c', legs: null, shoes: '#fff', front: word('5', 100, 168, 34, '#2b2350') + `<path d="M64 186h72v26h-30l-6-12-6 12h-30z" fill="#ff9f1c"/>` + belt('#2b2350') } },
+  { id: 'tux', slot: 'outfit', n: 'Fancy Suit', p: 10, o: { shirt: '#22223b', sleeve: '#22223b', long: 1, legs: '#22223b', shoes: '#111', front: `<path d="M84 118h32l-16 48z" fill="#fff"/><circle cx="100" cy="142" r="2" fill="#22223b"/><circle cx="100" cy="152" r="2" fill="#22223b"/><path d="M100 127l-14-9v18zM100 127l14-9v18z" fill="#e5383b"/><circle cx="100" cy="127" r="4" fill="#b3202c"/>` } },
+  { id: 'baseballfit', slot: 'outfit', n: 'Baseball Uniform', p: 12, o: { shirt: '#fff', sleeve: '#1d3f8f', legs: '#f1f3f5', shoes: '#111', front: `<path d="M75 120v66M87 119v67M113 119v67M125 120v66" stroke="#b9c6e0" stroke-width="1.5"/>` + word('5', 100, 168, 34, '#e5383b') + belt('#1d3f8f') } },
+  { id: 'footballfit', slot: 'outfit', n: 'Football Uniform', p: 15, o: { shirt: '#0b8a5c', sleeve: '#0b8a5c', legs: '#f1f3f5', shoes: '#111', front: `<rect x="48" y="113" width="104" height="26" rx="13" fill="#0b8a5c"/><rect x="48" y="130" width="104" height="4" fill="#fff"/>` + word('5', 100, 174, 34) } },
+  { id: 'hero', slot: 'outfit', n: 'Superhero', p: 25, o: { shirt: '#e5383b', sleeve: '#e5383b', long: 1, legs: '#1d6fd6', shoes: '#e5383b', back: `<path d="M68 122L34 214q66 22 132 0L132 122z" fill="#1d6fd6"/>`, front: `<circle cx="100" cy="152" r="17" fill="#ffd60a"/>` + emo('⚡', 100, 161, 22) + belt('#ffd60a') } },
+  { id: 'dino', slot: 'outfit', n: 'Dinosaur', p: 25, o: { shirt: '#4caf50', sleeve: '#4caf50', long: 1, legs: '#4caf50', shoes: '#2e7d32', back: `<path d="M128 176q54 4 64 50q-38 2-64-24z" fill="#4caf50"/><path d="M150 180l8-12 6 16zM168 192l10-10 2 16z" fill="#2e7d32"/>`, front: `<ellipse cx="100" cy="158" rx="22" ry="28" fill="#c5e1a5"/>` } },
+  { id: 'astro', slot: 'outfit', n: 'Astronaut', p: 30, o: { shirt: '#f4f6fb', sleeve: '#f4f6fb', long: 1, legs: '#f4f6fb', shoes: '#8d99ae', front: `<rect x="80" y="138" width="40" height="26" rx="5" fill="#cfd6e4"/><circle cx="89" cy="151" r="4.5" fill="#e5383b"/><circle cx="100" cy="151" r="4.5" fill="#ffd60a"/><circle cx="111" cy="151" r="4.5" fill="#06b77c"/>` + belt('#8d99ae') } },
+  // things to hold
+  { id: 'balloon', slot: 'hand', n: 'Balloon', p: 3, vb: '120 40 80 140', d: `<path d="M156 164Q170 134 168 100" stroke="#777" fill="none" stroke-width="1.5"/>` + emo('🎈', 168, 100, 46) },
+  { id: 'icecream', slot: 'hand', n: 'Ice Cream', p: 4, d: emo('🍦', 160, 162, 36) },
+  { id: 'fball', slot: 'hand', n: 'Football', p: 6, d: emo('🏈', 162, 164, 32) },
+  { id: 'bball', slot: 'hand', n: 'Basketball', p: 6, d: emo('🏀', 162, 162, 34) },
+  { id: 'bat', slot: 'hand', n: 'Baseball Bat', p: 8, vb: '120 60 80 130', d: `<g transform="rotate(24 156 166)"><rect x="152" y="100" width="8" height="74" rx="4" fill="#c98b4a"/><rect x="148" y="82" width="16" height="54" rx="8" fill="#dba864"/></g><circle cx="156" cy="166" r="9" fill="${SKIN}"/>` },
+  { id: 'glove', slot: 'hand', n: 'Baseball Glove', p: 8, vb: '8 126 76 66', d: `<circle cx="42" cy="164" r="17" fill="#a66a35"/><circle cx="55" cy="151" r="7" fill="#a66a35"/>` + emo('⚾', 42, 170, 15) },
+  { id: 'foam', slot: 'hand', n: 'Number One', p: 10, vb: '116 66 88 120', d: `<path d="M142 172v-42q0-7 7-7h4v-34q0-8 7.5-8t7.5 8v34h3q7 0 7 7v42z" fill="#e5383b"/>` + word('#1', 160, 158, 17) },
+  { id: 'trophy', slot: 'hand', n: 'Trophy', p: 40, d: emo('🏆', 164, 160, 42) },
+  // little friends
+  { id: 'chick', slot: 'pet', n: 'Chick', p: 15, d: emo('🐥', 28, 242, 30) },
+  { id: 'puppy', slot: 'pet', n: 'Puppy', p: 20, d: emo('🐶', 28, 242, 36) },
+  { id: 'rex', slot: 'pet', n: 'Pet Dino', p: 25, d: emo('🦖', 28, 242, 44) },
+];
+const I = {}; ITEMS.forEach(i => I[i.id] = i);
+const CROP = { hat: '34 -26 132 136', face: '50 44 100 80', outfit: '20 108 160 138', hand: '116 96 88 96', pet: '0 196 60 54' };
+
+function avatarSvg(on, vb, cls = '') {
+  const o = (I[on.outfit] || I.tee).o, d = k => (I[on[k]] && I[on[k]].d) || '';
+  const arm = (x1, x2) => `<line x1="${x1}" y1="130" x2="${x2}" y2="166" stroke="${o.long ? o.sleeve : SKIN}" stroke-width="15" stroke-linecap="round"/>`
+    + (o.sleeve && !o.long ? `<line x1="${x1}" y1="130" x2="${(x1 + x2) / 2}" y2="148" stroke="${o.sleeve}" stroke-width="18" stroke-linecap="round"/>` : '')
+    + `<circle cx="${x2}" cy="166" r="9" fill="${SKIN}"/>`;
+  return `<svg class="${cls}" viewBox="${vb || '0 -26 200 276'}" xmlns="http://www.w3.org/2000/svg">`
+    + `<ellipse cx="100" cy="243" rx="52" ry="6" fill="rgba(0,0,0,.14)"/>` + (o.back || '')
+    + `<rect x="70" y="186" width="24" height="48" rx="6" fill="${o.legs || SKIN}"/><rect x="106" y="186" width="24" height="48" rx="6" fill="${o.legs || SKIN}"/>`
+    + `<ellipse cx="80" cy="237" rx="17" ry="8" fill="${o.shoes}" stroke="rgba(0,0,0,.15)"/><ellipse cx="120" cy="237" rx="17" ry="8" fill="${o.shoes}" stroke="rgba(0,0,0,.15)"/>`
+    + arm(66, 44) + arm(134, 156)
+    + `<path d="M72 118h56a10 10 0 0 1 10 10v64h-76v-64a10 10 0 0 1 10-10z" fill="${o.shirt}" stroke="rgba(0,0,0,.12)"/>` + (o.front || '')
+    + `<circle cx="60" cy="80" r="8" fill="${SKIN}"/><circle cx="140" cy="80" r="8" fill="${SKIN}"/><circle cx="100" cy="78" r="40" fill="${SKIN}"/>`
+    + `<path d="M61 72Q58 36 100 36Q142 36 139 72Q126 52 100 54Q74 52 61 72z" fill="#6b4226"/>`
+    + `<circle cx="76" cy="95" r="6" fill="#ff8fa3" opacity=".5"/><circle cx="124" cy="95" r="6" fill="#ff8fa3" opacity=".5"/>`
+    + `<circle cx="86" cy="80" r="4.5" fill="#2b2350"/><circle cx="114" cy="80" r="4.5" fill="#2b2350"/><path d="M86 95Q100 109 114 95" fill="none" stroke="#2b2350" stroke-width="3.5" stroke-linecap="round"/>`
+    + d('face') + d('hat') + d('hand') + d('pet') + `</svg>`;
+}
+const thumb = it => avatarSvg({ outfit: it.slot === 'outfit' ? it.id : 'tee', [it.slot]: it.id }, it.vb || CROP[it.slot], 'th');
+
+let av = store.get('ab_av', null);
+if (!av || !Array.isArray(av.own) || !av.on) av = { own: ['kippah', 'tee'], on: { hat: 'kippah', outfit: 'tee' } };
+av.own = av.own.filter(id => I[id]);
+const saveAv = () => store.set('ab_av', av);
+const owns = id => av.own.includes(id);
+const nextGoal = () => ITEMS.filter(i => !owns(i.id)).sort((a, b) => a.p - b.p)[0];   // the cheapest thing he does not have yet
+const meter = it => `<span class="meter"><i style="width:${Math.min(100, Math.round(stars / it.p * 100))}%"></i></span>`;
+function drawGoals() {
+  const ready = ITEMS.some(i => !owns(i.id) && stars >= i.p);   // glows when he has enough stars for something, without saying what
+  document.querySelectorAll('.goal').forEach(b => { b.classList.toggle('ready', ready); b.innerHTML = avatarSvg(av.on) + '<span>🛍️ Store</span>'; });
+}
+const TABS = [['hat', '🧢'], ['face', '😎'], ['outfit', '👕'], ['stuff', '⚾']];
+let shopTab = 'hat', tryId = null;
+function hopMe() { const m = $('meSvg'); m.classList.remove('hop'); void m.offsetWidth; m.classList.add('hop'); }
+function drawShop() {
+  const t = tryId && I[tryId], on = Object.assign({}, av.on); if (t) on[t.slot] = t.id;
+  $('meSvg').innerHTML = avatarSvg(on);
+  const tabs = $('tabs'); tabs.innerHTML = '';
+  TABS.forEach(([id, em]) => { const b = document.createElement('button'); b.className = 'tab' + (id === shopTab ? ' on' : ''); b.textContent = em;
+    b.addEventListener('click', () => { shopTab = id; tryId = null; drawShop(); $('items').scrollTop = 0; }); tabs.appendChild(b); });
+  const box = $('items'); box.innerHTML = '';
+  ITEMS.filter(i => shopTab === 'stuff' ? (i.slot === 'hand' || i.slot === 'pet') : i.slot === shopTab).sort((a, b) => a.p - b.p).forEach(it => {
+    const have = owns(it.id), worn = av.on[it.slot] === it.id, can = !have && stars >= it.p;
+    const b = document.createElement('button');
+    b.className = 'item' + (worn ? ' worn' : have ? '' : can ? ' can' : ' locked') + (tryId === it.id ? ' try' : '');
+    b.innerHTML = thumb(it) + `<span>${it.n}</span>` + (worn ? '<span class="tag">✓ On</span>' : have ? '<span class="tag">Mine</span>'
+      : can ? `<span class="tag">⭐ ${it.p}</span>` : `<span class="tag">🔒 ⭐ ${it.p}</span>` + meter(it));
+    b.addEventListener('click', () => tapItem(it)); box.appendChild(b);
+  });
+  const of = $('offer'); of.innerHTML = '';
+  const btn = (cls, txt, fn) => { const b = document.createElement('button'); b.className = cls; b.textContent = txt; b.addEventListener('click', fn); of.appendChild(b); };
+  if (!t) { const g = nextGoal(); of.innerHTML = g ? '<span>👆 Tap something to try it on!</span>' : '<span>🎉 You got everything!</span>'; }
+  else if (stars >= t.p) { of.innerHTML = `<span>${t.n}</span>`; btn('buy', 'Get it!  ⭐ ' + t.p, () => buy(t)); }
+  else { of.innerHTML = `<span>${t.n}: ⭐ ${t.p - stars} more!</span>` + meter(t); btn('buy play', '▶ Play to earn stars', () => go('home')); }
+}
+function tapItem(it) {
+  if (owns(it.id)) {
+    tryId = null;
+    if (av.on[it.slot] !== it.id) av.on[it.slot] = it.id;
+    else if (it.slot === 'outfit') av.on.outfit = 'tee';
+    else delete av.on[it.slot];
+    saveAv(); tone(700, .08, 0, 'sine', .2);
+  } else { tryId = tryId === it.id ? null : it.id; tone(stars >= it.p ? 880 : 330, .1, 0, 'triangle', .2); }
+  drawShop(); hopMe();
+}
+function buy(it) {
+  if (owns(it.id) || stars < it.p) return;
+  stars -= it.p; store.set('ab_stars', stars); av.own.push(it.id); av.on[it.slot] = it.id; tryId = null; saveAv();
+  showStars(true); drawShop(); hopMe(); confetti(30); sfxYes();
+}
+
 /* ---------- Confetti ---------- */
 function confetti(n = 22) {
   const bits = ['⭐','🎉','✨','💛','💜','💚','🎊','🌟'];
@@ -528,6 +725,7 @@ function go(id) {
   if (id === 'find') startFind();
   if (id === 'balloons') startBalloons();
   if (id === 'parents') drawParents();
+  if (id === 'shop') { tryId = null; drawShop(); }
 }
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
 $('again').addEventListener('click', () => go(lastGame));
@@ -958,8 +1156,14 @@ $('clearRec').addEventListener('click', () => {
   drawParents();
 });
 $('resetStars').addEventListener('click', () => { stars = 0; store.set('ab_stars', 0); showStars(); });
+$('bonusStars').addEventListener('click', () => { stars += 10; store.set('ab_stars', stars); showStars(true); $('bonusStars').textContent = 'Give 10 bonus stars (now ' + stars + ')'; });
+$('resetAv').addEventListener('click', () => {
+  if (!confirm('Take back everything bought in the store? Stars already spent are not given back.')) return;
+  av = { own: ['kippah', 'tee'], on: { hat: 'kippah', outfit: 'tee' } }; saveAv(); showStars();
+});
 
 $('kidTitle').textContent = KID + "'s ";
+document.querySelectorAll('.kidname').forEach(e => e.textContent = KID);
 showStars();
 </script>
 </body>
