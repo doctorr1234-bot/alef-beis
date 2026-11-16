@@ -119,11 +119,14 @@
   #baseball .choices { direction: rtl; }
   .ball { position: relative; overflow: hidden; width: 27vmin; height: 27vmin; max-width: 29vw; max-height: 29vw; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff 0, #f3efe6 70%, #d9d3c5 100%);
     color: #1b2a55; font-size: 15vmin; display: grid; place-items: center; box-shadow: 0 10px 0 rgba(0,0,0,.25); animation: pitch .5s backwards cubic-bezier(.2,.9,.3,1.2); }
+  .four .ball { max-width: 21vw; max-height: 21vw; font-size: min(15vmin, 12vw); }
   .ball::before, .ball::after { content: ""; position: absolute; top: 0; width: 100%; height: 100%; border-radius: 50%; border: .9vmin dashed #e63946; }
   .ball::before { left: -78%; } .ball::after { left: 78%; }
   .ball span { position: relative; z-index: 1; }
   @keyframes pitch { from { transform: scale(.05) translateY(-60vh) rotate(-360deg); opacity: 0; } }
   .ball.wrong { animation: shake .45s; opacity: .35; }
+  .ball.show { animation: bump .5s 3; outline: 1.2vmin solid #ffd60a; }
+  #bbOuts { font-size: 15px; letter-spacing: 0; white-space: nowrap; }
   .ball.hit { animation: fly .9s forwards cubic-bezier(.3,.6,.6,1); z-index: 6; }
   @keyframes fly { to { transform: translate(-30vw, -110vh) scale(.15) rotate(900deg); } }
   #bbCall { position: absolute; left: 0; right: 0; top: 40%; text-align: center; font-size: 13vmin; font-weight: 700; color: #ffd60a; -webkit-text-stroke: .5vmin #2b2350; paint-order: stroke fill; pointer-events: none; opacity: 0; z-index: 7; }
@@ -136,6 +139,7 @@
     .stagecard { width: 46vmin; height: 46vmin; } .stagecard .heb { font-size: 28vmin; } .stagecard .nm { font-size: 6vmin; }
     .balloon { width: 24vmin; height: 29vmin; font-size: 14vmin; }
     .big { width: 40vmin; max-width: 170px; } .big .em { font-size: 15vmin; }
+    .four .ball { width: 37vmin; height: 37vmin; max-width: none; max-height: none; font-size: 21vmin; } #baseball .choices.four { gap: 3vmin; }
   }
   @media (max-width: 520px) {
     .round { width: 52px; height: 52px; font-size: 25px; }
@@ -152,7 +156,8 @@
     .round { width: 48px; height: 48px; font-size: 23px; } .stars { font-size: 19px; padding: 6px 12px; }
     .prompt { margin-top: 0; padding: 6px 18px; }
     .choice { width: 44vmin; height: 44vmin; max-width: 22vw; max-height: 22vw; font-size: min(28vmin, 14vw); }
-    .ball { width: 46vmin; height: 46vmin; font-size: 26vmin; }
+    .ball { width: 46vmin; height: 46vmin; font-size: 26vmin; } .four .ball { max-width: 21vw; max-height: 21vw; font-size: min(26vmin, 12vw); }
+    #bbOuts { font-size: 12px; padding: 1px 8px; }
     .stage { margin: 0; } .stagecard { width: 30vmin; height: 30vmin; } .stagecard .heb { font-size: 18vmin; }
     .diamond { position: absolute; left: max(84px, 12vw); top: 8px; margin: 0; width: 22vmin; height: 22vmin; min-width: 0; min-height: 0; transform: translateX(20px); }
     #baseball .prompt { margin-top: -2px; }
@@ -239,7 +244,7 @@
 
 <!-- BASEBALL -->
 <section id="baseball" class="screen">
-  <div class="bar"><button class="round" data-go="home">🏠</button><div class="stars">Runs: <span id="bbRuns">0</span> / 2</div><div class="stars">⭐ <span class="starcount">0</span></div></div>
+  <div class="bar"><button class="round" data-go="home">🏠</button><div class="mid"><div class="stars">Runs: <span id="bbRuns">0</span> / 2</div><div class="hearts" id="bbOuts"></div></div><div class="stars">⭐ <span class="starcount">0</span></div></div>
   <div class="diamond"><div class="infield"></div><i style="left:50%;top:100%"></i><i style="left:100%;top:50%"></i><i style="left:50%;top:0"></i><i style="left:0;top:50%"></i><span id="bbRunner">🏃</span></div>
   <button class="prompt" id="bbPrompt">🔊 <span id="bbText"></span></button>
   <div class="choices" id="bbBalls"></div>
@@ -264,6 +269,10 @@
     <p id="pickcount" style="margin-top:12px"></p>
     <div id="pickmsg" style="color:#c1121f;font-weight:600"></div>
     <div class="recgrid" id="pickgrid"></div>
+
+    <h3>Baseball</h3>
+    <p>With four balls, three wrong taps is a strikeout, and three outs end the game. With three balls there are no strikeouts.</p>
+    <div class="sets" id="bbOpt"></div>
 
     <h3>Replace a letter with a new recording</h3>
     <p>The game already speaks with the recording built into it. To redo a letter, tap it here, say its name, and tap again to stop (it stops by itself after 3 seconds). That new recording is kept on this device only and is used instead of the built-in one. "Delete all recordings" goes back to the built-in voice.</p>
@@ -612,20 +621,24 @@ $('balPrompt').addEventListener('click', () => bTarget && say(['Pop the', bTarge
 /* ---------- Baseball ----------
    Three balls are pitched. Tap the ball with the asked-for letter to get a hit and move the runner one base.
    A wrong ball is a strike (it just fades, and he tries again). Four hits bring the runner home for a run; 2 runs win. */
-const BASES = [[50, 100], [100, 50], [50, 0], [0, 50]], RUNS_TO_WIN = 2;
-let bbTarget = null, bbBase = 0, bbRuns = 0, bbStrikes = 0, bbLock = false;
-function startBaseball() { bbTarget = null; bbBase = 0; bbRuns = 0; nextPitch(); }
+const BASES = [[50, 100], [100, 50], [50, 0], [0, 50]], RUNS_TO_WIN = 2, OUTS = 3;
+let bbFour = store.get('ab_bb4', true);      // four balls per pitch: three wrong taps is a strikeout (set under Parents)
+let bbTarget = null, bbBase = 0, bbRuns = 0, bbStrikes = 0, bbOuts = 0, bbLock = false;
+function startBaseball() { bbTarget = null; bbBase = 0; bbRuns = 0; bbOuts = 0; $('bbCall').classList.remove('show'); nextPitch(); }
 function drawBaseball() {
   $('bbRuns').textContent = bbRuns;
+  $('bbOuts').style.display = bbFour ? '' : 'none';
+  $('bbOuts').textContent = 'Outs ' + '🔴'.repeat(bbOuts) + '⚪'.repeat(OUTS - bbOuts);
   const [x, y] = BASES[bbBase % 4], r = $('bbRunner'); r.style.left = x + '%'; r.style.top = y + '%';
 }
 function umpire(text) { const c = $('bbCall'); c.textContent = text; c.classList.remove('show'); void c.offsetWidth; c.classList.add('show'); }
 function nextPitch() {
   const p = pool(); bbLock = false; bbStrikes = 0;
   bbTarget = pick(p.filter(l => l !== bbTarget));
-  const opts = shuffle([bbTarget, ...shuffle(p.filter(l => l !== bbTarget)).slice(0, 2)]);
+  const n = Math.min(bbFour ? 4 : 3, p.length);
+  const opts = shuffle([bbTarget, ...shuffle(p.filter(l => l !== bbTarget)).slice(0, n - 1)]);
   $('bbText').textContent = 'Hit ' + bbTarget.n + '!';
-  const box = $('bbBalls'); box.innerHTML = '';
+  const box = $('bbBalls'); box.innerHTML = ''; box.classList.toggle('four', n === 4);
   opts.forEach((l, i) => {
     const b = document.createElement('button'); b.className = 'ball heb'; b.style.animationDelay = i * .15 + 's';
     b.innerHTML = '<span></span>'; b.firstChild.textContent = l.h;
@@ -645,8 +658,15 @@ function swing(l, b) {
     drawBaseball();
     say(home ? ['Home run!', GREAT] : ['Hit!', 'Yay!']);
     setTimeout(() => { if (current !== 'baseball') return; bbRuns >= RUNS_TO_WIN ? finish('baseball') : nextPitch(); }, home ? 3300 : 2200);
+  } else if (++bbStrikes >= 3) {
+    /* strikeout: the right ball is shown, the batter is out, and a new pitch comes (or the game ends on the third out) */
+    bbLock = true; bbOuts++; b.classList.add('wrong'); sfxNo(); tone(150, .4, .2, 'triangle', .15);
+    umpire("STRIKE 3! OUT!"); drawBaseball();
+    [...$('bbBalls').children].forEach(x => x.firstChild.textContent === bbTarget.h && x.classList.add('show'));
+    say(['Strike!', 'That is', l]);
+    setTimeout(() => { if (current !== 'baseball') return; bbOuts >= OUTS ? finish('baseball', false) : nextPitch(); }, 3000);
   } else {
-    bbStrikes++; b.classList.add('wrong'); sfxNo(); umpire('STRIKE ' + bbStrikes + '!');
+    b.classList.add('wrong'); sfxNo(); umpire('STRIKE ' + bbStrikes + '!');
     say(['Strike!', 'That is', l, 'Hit the', bbTarget]);
   }
 }
@@ -690,6 +710,13 @@ function drawParents() {
     pg.appendChild(b);
   });
   $('pickcount').textContent = chosen.length + ' of ' + L.length + ' letters in the games';
+  const bo = $('bbOpt'); bo.innerHTML = '';
+  [[true, '4 balls, with strikeouts'], [false, '3 balls, no strikeouts']].forEach(([v, label]) => {
+    const b = document.createElement('button'); b.className = 'set' + (bbFour === v ? ' on' : ''); b.textContent = label;
+    b.style.cssText = 'font-size:16px;direction:ltr';
+    b.addEventListener('click', () => { bbFour = v; store.set('ab_bb4', v); drawParents(); });
+    bo.appendChild(b);
+  });
   const r = $('recgrid'); r.innerHTML = '';
   L.forEach(l => {
     const b = document.createElement('button');
