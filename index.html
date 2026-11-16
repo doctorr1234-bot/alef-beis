@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Alef Beis">
+<meta name="theme-color" content="#5ec8ff">
+<title>Daniel's Alef Beis!</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; -webkit-text-size-adjust: 100%; }
+  body { position: fixed; inset: 0; -webkit-touch-callout: none; }
+  body {
+    font-family: "Chalkboard SE", "Comic Sans MS", "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+    background: linear-gradient(180deg, #5ec8ff 0%, #a8e6ff 55%, #c9f7c0 100%);
+    color: #2b2350; user-select: none; -webkit-user-select: none; touch-action: manipulation;
+  }
+  .heb { font-family: "Arial Hebrew", "SF Hebrew", "Noto Sans Hebrew", "Rubik", "Arial", sans-serif; font-weight: 700; line-height: 1; }
+  button { font: inherit; color: inherit; border: 0; cursor: pointer; }
+
+  .screen { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center;
+    padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); }
+  .screen.on { display: flex; }
+
+  /* floating clouds */
+  .cloud { position: absolute; font-size: 70px; opacity: .85; animation: drift 40s linear infinite; pointer-events: none; }
+  @keyframes drift { from { transform: translateX(-20vw); } to { transform: translateX(120vw); } }
+
+  /* top bar */
+  .bar { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex: 0 0 auto; z-index: 5; }
+  .round { width: 62px; height: 62px; border-radius: 50%; background: #fff; font-size: 30px; box-shadow: 0 5px 0 rgba(0,0,0,.18); display: grid; place-items: center; }
+  .round:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,.18); }
+  .stars { background: #fff; border-radius: 40px; padding: 8px 18px; font-size: 26px; font-weight: 700; box-shadow: 0 5px 0 rgba(0,0,0,.18); }
+  .stars.bump { animation: bump .4s; }
+  @keyframes bump { 50% { transform: scale(1.3); } }
+
+  /* home */
+  #home { justify-content: safe center; gap: 2.5vh; overflow-y: auto; padding-top: max(84px, calc(env(safe-area-inset-top) + 70px)); }
+  .title { display: flex; gap: 1.5vmin; direction: rtl; }
+  .title span { font-size: 15vmin; text-shadow: 0 6px 0 rgba(0,0,0,.15); animation: hop 1.6s ease-in-out infinite; display: inline-block; }
+  .title span:nth-child(1) { color: #ff4d6d; }
+  .title span:nth-child(2) { color: #ffb703; animation-delay: .2s; }
+  .title span:nth-child(3) { color: #8338ec; animation-delay: .4s; }
+  @keyframes hop { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-3vmin) rotate(4deg); } }
+  h1 { margin: 0; font-size: 7vmin; color: #fff; text-shadow: 0 4px 0 #2b6cb0; }
+  .menu { display: flex; gap: 3vmin; flex-wrap: wrap; justify-content: center; }
+  .big {
+    width: 25vmin; min-width: 118px; max-width: 200px; aspect-ratio: 1; border-radius: 26px; color: #fff; font-size: max(15px, 3.3vmin); font-weight: 700; padding: 6px; flex: 0 0 auto;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1vmin;
+    box-shadow: 0 9px 0 rgba(0,0,0,.22); transition: transform .08s;
+  }
+  .big .em { font-size: min(10vmin, 80px); line-height: 1.1; }
+  .big:active { transform: translateY(7px); box-shadow: 0 2px 0 rgba(0,0,0,.22); }
+  .b1 { background: #ff6b6b; } .b2 { background: #8338ec; } .b3 { background: #06b77c; } .b4 { background: #ff9f1c; } .b5 { background: #1d6fd6; }
+  .homebar { position: absolute; top: max(14px, env(safe-area-inset-top)); left: max(14px, env(safe-area-inset-left)); right: max(14px, env(safe-area-inset-right)); display: flex; justify-content: space-between; }
+  .parentbtn { background: rgba(255,255,255,.75); border-radius: 30px; padding: 10px 16px; font-size: 16px; }
+
+  /* learn */
+  .stage { flex: 0 0 auto; display: flex; align-items: center; gap: 3vmin; margin: 1vh 0; }
+  .stagecard {
+    width: 34vmin; height: 34vmin; border-radius: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #fff; box-shadow: 0 10px 0 rgba(0,0,0,.2);
+  }
+  .stagecard .heb { font-size: 21vmin; }
+  .stagecard .nm { font-size: 4.2vmin; font-weight: 700; margin-top: 1vmin; }
+  .pop { animation: pop .5s; }
+  @keyframes pop { 0% { transform: scale(.6) rotate(-8deg); } 60% { transform: scale(1.12) rotate(4deg); } 100% { transform: scale(1); } }
+  .grid { flex: 1 1 auto; width: 100%; max-width: 900px; overflow-y: auto; direction: rtl; display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 10px; padding: 6px 6px 16px; align-content: start; }
+  .tile { aspect-ratio: 1; border-radius: 18px; color: #fff; font-size: 40px; box-shadow: 0 5px 0 rgba(0,0,0,.2); display: grid; place-items: center; }
+  .tile:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,.2); }
+  .tile.sel { outline: 5px solid #fff; }
+
+  /* find */
+  .prompt { flex: 0 0 auto; margin-top: 2vh; background: #fff; border-radius: 40px; padding: 12px 26px; font-size: max(19px, 4.5vmin); font-weight: 700; box-shadow: 0 6px 0 rgba(0,0,0,.15); display: flex; align-items: center; gap: 12px; }
+  .prompt:active { transform: translateY(4px); }
+  .choices { flex: 1 1 auto; display: flex; flex-wrap: wrap; gap: 4vmin; align-items: center; justify-content: center; align-content: center; direction: rtl; }
+  .choice { width: 30vmin; height: 30vmin; max-width: 42vw; max-height: 42vw; border-radius: 30px; color: #fff; font-size: 19vmin; box-shadow: 0 10px 0 rgba(0,0,0,.22); display: grid; place-items: center; transition: opacity .3s, transform .1s; }
+  .choice:active { transform: translateY(6px); }
+  .choice.wrong { animation: shake .45s; opacity: .35; }
+  .choice.right { animation: win .9s; }
+  @keyframes shake { 20%,60% { transform: translateX(-12px); } 40%,80% { transform: translateX(12px); } }
+  @keyframes win { 30% { transform: scale(1.25) rotate(8deg); } 60% { transform: scale(1.15) rotate(-8deg); } 100% { transform: scale(1.1); } }
+  .dots { display: flex; gap: 8px; margin-bottom: 1vh; }
+  .dot { width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,.55); }
+  .dot.done { background: #ffd60a; box-shadow: 0 0 0 3px #fff; }
+
+  /* balloons */
+  #sky { position: absolute; inset: 0; overflow: hidden; }
+  .balloon {
+    position: absolute; bottom: -24vmin; width: 19vmin; height: 23vmin; min-width: 84px; min-height: 102px;
+    border-radius: 50% 50% 50% 50% / 45% 45% 55% 55%; color: #fff; font-size: 11vmin;
+    display: grid; place-items: center; animation: rise linear forwards;
+    box-shadow: inset -1.6vmin -1.6vmin 0 rgba(0,0,0,.12), inset 1.2vmin 1.2vmin 0 rgba(255,255,255,.25);
+  }
+  .balloon::after { content: ""; position: absolute; top: 100%; left: 50%; width: 2px; height: 9vmin; background: rgba(0,0,0,.3); }
+  .balloon span { pointer-events: none; }
+  @keyframes rise { to { transform: translateY(calc(-100vh - 40vmin - 120px)); } }
+  .balloon.hint { animation-name: rise, glow; animation-duration: var(--d), .9s; animation-timing-function: linear, ease-in-out; animation-iteration-count: 1, infinite; animation-fill-mode: forwards, none; }
+  @keyframes glow { 0%,100% { outline: 0 solid rgba(255,255,255,0); } 50% { outline: 1.6vmin solid rgba(255,255,255,.85); } }
+  .boom { position: absolute; font-size: 14vmin; pointer-events: none; transform: translate(-50%,-50%); animation: boom .5s forwards; z-index: 4; }
+  @keyframes boom { from { transform: translate(-50%,-50%) scale(.4); opacity: 1; } to { transform: translate(-50%,-50%) scale(1.5); opacity: 0; } }
+  .mid { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .hearts { font-size: 26px; letter-spacing: 3px; background: rgba(255,255,255,.8); border-radius: 30px; padding: 2px 12px; }
+  .hearts.lost { animation: shake .45s; }
+  .prompt.nudge { animation: bump .5s 2; }
+  .balloon.wob span { display: block; animation: shake .45s; }
+  .balloon.popped { animation: burst .28s forwards !important; }
+  @keyframes burst { to { transform: translateY(var(--y, 0)) scale(1.7); opacity: 0; } }
+
+  /* baseball */
+  #baseball { background: linear-gradient(180deg, #5ec8ff 0, #a8e6ff 22%, #4caf61 22%, #3d9a52 100%); }
+  .diamond { position: relative; width: 20vmin; height: 20vmin; min-width: 84px; min-height: 84px; margin: 3vmin 0 5vmin; flex: 0 0 auto; }
+  .infield { position: absolute; inset: 14.6%; background: #c98e5a; transform: rotate(45deg); border: 3px solid #fff; }
+  .diamond i { position: absolute; width: 16%; height: 16%; background: #fff; transform: translate(-50%, -50%) rotate(45deg); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+  #bbRunner { position: absolute; font-size: max(30px, 8vmin); transform: translate(-50%, -75%) scaleX(-1); transition: left .6s ease-in-out, top .6s ease-in-out; z-index: 2; }
+  #baseball .prompt { margin-top: 0; }
+  #baseball .choices { direction: rtl; }
+  .ball { position: relative; overflow: hidden; width: 27vmin; height: 27vmin; max-width: 29vw; max-height: 29vw; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff 0, #f3efe6 70%, #d9d3c5 100%);
+    color: #1b2a55; font-size: 15vmin; display: grid; place-items: center; box-shadow: 0 10px 0 rgba(0,0,0,.25); animation: pitch .5s backwards cubic-bezier(.2,.9,.3,1.2); }
+  .ball::before, .ball::after { content: ""; position: absolute; top: 0; width: 100%; height: 100%; border-radius: 50%; border: .9vmin dashed #e63946; }
+  .ball::before { left: -78%; } .ball::after { left: 78%; }
+  .ball span { position: relative; z-index: 1; }
+  @keyframes pitch { from { transform: scale(.05) translateY(-60vh) rotate(-360deg); opacity: 0; } }
+  .ball.wrong { animation: shake .45s; opacity: .35; }
+  .ball.hit { animation: fly .9s forwards cubic-bezier(.3,.6,.6,1); z-index: 6; }
+  @keyframes fly { to { transform: translate(-30vw, -110vh) scale(.15) rotate(900deg); } }
+  #bbCall { position: absolute; left: 0; right: 0; top: 40%; text-align: center; font-size: 13vmin; font-weight: 700; color: #ffd60a; -webkit-text-stroke: .5vmin #2b2350; paint-order: stroke fill; pointer-events: none; opacity: 0; z-index: 7; }
+  #bbCall.show { animation: callout 1.3s; }
+  @keyframes callout { 0% { opacity: 0; transform: scale(.3) rotate(-8deg); } 20% { opacity: 1; transform: scale(1.15) rotate(-4deg); } 75% { opacity: 1; transform: scale(1) rotate(-4deg); } 100% { opacity: 0; transform: scale(1.3) rotate(-4deg); } }
+
+  /* phones */
+  @media (orientation: portrait) {
+    .choice { width: 40vmin; height: 40vmin; font-size: 25vmin; }
+    .stagecard { width: 46vmin; height: 46vmin; } .stagecard .heb { font-size: 28vmin; } .stagecard .nm { font-size: 6vmin; }
+    .balloon { width: 24vmin; height: 29vmin; font-size: 14vmin; }
+    .big { width: 40vmin; max-width: 170px; } .big .em { font-size: 15vmin; }
+  }
+  @media (max-width: 520px) {
+    .round { width: 52px; height: 52px; font-size: 25px; }
+    .stars { font-size: 20px; padding: 7px 12px; }
+    .dots { gap: 5px; } .dot { width: 11px; height: 11px; }
+    .hearts { font-size: 18px; letter-spacing: 1px; }
+    .prompt { padding: 10px 18px; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 8px; } .tile { font-size: 32px; }
+  }
+  @media (max-height: 480px) and (orientation: landscape) {
+    .screen { padding-top: max(8px, env(safe-area-inset-top)); padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+    #home { padding-top: 8px; gap: 1.5vh; } .title span { font-size: 13vmin; } h1 { font-size: 6vmin; }
+    .big { min-width: 100px; width: 30vmin; font-size: 13px; border-radius: 20px; }
+    .round { width: 48px; height: 48px; font-size: 23px; } .stars { font-size: 19px; padding: 6px 12px; }
+    .prompt { margin-top: 0; padding: 6px 18px; }
+    .choice { width: 44vmin; height: 44vmin; max-width: 22vw; max-height: 22vw; font-size: min(28vmin, 14vw); }
+    .ball { width: 46vmin; height: 46vmin; font-size: 26vmin; }
+    .stage { margin: 0; } .stagecard { width: 30vmin; height: 30vmin; } .stagecard .heb { font-size: 18vmin; }
+    .diamond { position: absolute; left: max(84px, 12vw); top: 8px; margin: 0; width: 22vmin; height: 22vmin; min-width: 0; min-height: 0; transform: translateX(20px); }
+    #baseball .prompt { margin-top: -2px; }
+  }
+
+  /* done */
+  #done { justify-content: center; gap: 3vh; text-align: center; }
+  #done .trophy { font-size: 26vmin; animation: hop 1.4s infinite; }
+  #done h2 { font-size: 8vmin; margin: 0; color: #fff; text-shadow: 0 4px 0 #2b6cb0; }
+  .row { display: flex; gap: 4vmin; }
+  .row .round { width: 16vmin; height: 16vmin; min-width: 84px; min-height: 84px; font-size: 8vmin; }
+
+  /* confetti */
+  .conf { position: fixed; top: -8vh; font-size: 5vmin; pointer-events: none; z-index: 50; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(115vh) rotate(540deg); } }
+
+  /* parents */
+  #parents { background: #fffdf5; overflow-y: auto; align-items: stretch; font-family: system-ui, sans-serif; display: none; }
+  #parents.on { display: block; }
+  #parents .in { max-width: 760px; margin: 0 auto; padding-bottom: 40px; }
+  #parents h2 { margin: 6px 0 4px; } #parents h3 { margin: 26px 0 6px; } #parents p { margin: 4px 0 12px; line-height: 1.45; color: #4a4466; }
+  .sets { display: flex; flex-wrap: wrap; gap: 10px; }
+  .set { padding: 10px 16px; border-radius: 14px; background: #eee; font-size: 24px; direction: rtl; border: 3px solid transparent; }
+  .set.on { background: #d8f5e6; border-color: #06b77c; }
+  #pickgrid .rec { opacity: .55; } #pickgrid .rec.has { opacity: 1; }
+  .recgrid { direction: rtl; display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; }
+  .rec { border-radius: 14px; background: #f0eefc; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; border: 3px solid transparent; }
+  .rec .heb { font-size: 34px; } .rec small { font-size: 12px; direction: ltr; }
+  .rec.has { background: #d8f5e6; border-color: #06b77c; }
+  .rec.live { background: #ffd9d9; border-color: #e5383b; animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: .6; } }
+  .plain { background: #2b2350; color: #fff; border-radius: 12px; padding: 10px 16px; font-size: 15px; margin: 10px 8px 0 0; }
+  .plain.lite { background: #e7e4f5; color: #2b2350; }
+  #recmsg { color: #c1121f; font-weight: 600; min-height: 1.3em; }
+</style>
+</head>
+<body>
+
+<div class="cloud" style="top:6%;">☁️</div>
+<div class="cloud" style="top:22%; animation-delay:-18s; font-size:50px;">☁️</div>
+<div class="cloud" style="top:12%; animation-delay:-30s; font-size:90px;">☁️</div>
+
+<!-- HOME -->
+<section id="home" class="screen on">
+  <div class="homebar">
+    <button class="parentbtn" data-go="parents">⚙️ Parents</button>
+    <div class="stars">⭐ <span class="starcount">0</span></div>
+  </div>
+  <div class="title heb"><span>א</span><span>בּ</span><span>ג</span></div>
+  <h1><span id="kidTitle"></span>Alef Beis!</h1>
+  <div class="menu">
+    <button class="big b1" data-go="learn"><span class="em">📖</span>Meet the Letters</button>
+    <button class="big b2" data-go="find"><span class="em">🔍</span>Find the Letter</button>
+    <button class="big b4" data-go="twins"><span class="em">👀</span>Look-Alikes</button>
+    <button class="big b3" data-go="balloons"><span class="em">🎈</span>Pop the Balloon</button>
+    <button class="big b5" data-go="baseball"><span class="em">⚾</span>Baseball</button>
+  </div>
+</section>
+
+<!-- LEARN -->
+<section id="learn" class="screen">
+  <div class="bar"><button class="round" data-go="home">🏠</button><div class="stars">⭐ <span class="starcount">0</span></div></div>
+  <div class="stage">
+    <button class="round" id="nextL">◀</button>
+    <button class="stagecard" id="stagecard"><span class="heb" id="stageHeb"></span><span class="nm" id="stageName"></span></button>
+    <button class="round" id="prevL">▶</button>
+  </div>
+  <div class="grid" id="grid"></div>
+</section>
+
+<!-- FIND -->
+<section id="find" class="screen">
+  <div class="bar"><button class="round" data-go="home">🏠</button><div class="dots" id="findDots"></div><div class="stars">⭐ <span class="starcount">0</span></div></div>
+  <button class="prompt" id="findPrompt">🔊 <span id="findText"></span></button>
+  <div class="choices" id="choices"></div>
+</section>
+
+<!-- BALLOONS -->
+<section id="balloons" class="screen">
+  <div id="sky"></div>
+  <div class="bar"><button class="round" data-go="home">🏠</button><div class="mid"><div class="dots" id="balDots"></div><div class="hearts" id="balHearts"></div></div><div class="stars">⭐ <span class="starcount">0</span></div></div>
+  <button class="prompt" id="balPrompt" style="z-index:5">🔊 <span id="balText"></span></button>
+</section>
+
+<!-- BASEBALL -->
+<section id="baseball" class="screen">
+  <div class="bar"><button class="round" data-go="home">🏠</button><div class="stars">Runs: <span id="bbRuns">0</span> / 2</div><div class="stars">⭐ <span class="starcount">0</span></div></div>
+  <div class="diamond"><div class="infield"></div><i style="left:50%;top:100%"></i><i style="left:100%;top:50%"></i><i style="left:50%;top:0"></i><i style="left:0;top:50%"></i><span id="bbRunner">🏃</span></div>
+  <button class="prompt" id="bbPrompt">🔊 <span id="bbText"></span></button>
+  <div class="choices" id="bbBalls"></div>
+  <div id="bbCall"></div>
+</section>
+
+<!-- DONE -->
+<section id="done" class="screen">
+  <div class="trophy" id="doneIcon">🏆</div>
+  <h2 id="doneText">Great job!</h2>
+  <div class="stars" style="font-size:6vmin">⭐ <span class="starcount">0</span></div>
+  <div class="row"><button class="round" id="again">🔁</button><button class="round" data-go="home">🏠</button></div>
+</section>
+
+<!-- PARENTS -->
+<section id="parents" class="screen">
+  <div class="in">
+    <button class="plain" data-go="home">← Back to the game</button>
+    <h3>Which letters to practice</h3>
+    <p>The two games only ask about the letters switched on (green) below. Tap any letter to switch it on or off, or use the buttons to switch a whole row of the Alef Beis at once. "Meet the Letters" always shows everything.</p>
+    <div class="sets" id="sets"></div>
+    <p id="pickcount" style="margin-top:12px"></p>
+    <div id="pickmsg" style="color:#c1121f;font-weight:600"></div>
+    <div class="recgrid" id="pickgrid"></div>
+
+    <h3>Replace a letter with a new recording</h3>
+    <p>The game already speaks with the recording built into it. To redo a letter, tap it here, say its name, and tap again to stop (it stops by itself after 3 seconds). That new recording is kept on this device only and is used instead of the built-in one. "Delete all recordings" goes back to the built-in voice.</p>
+    <div id="recmsg"></div>
+    <div class="recgrid" id="recgrid"></div>
+    <button class="plain lite" id="clearRec">Delete all recordings</button>
+    <button class="plain lite" id="resetStars">Reset stars to 0</button>
+  </div>
+</section>
+
+<script>
+/* ---------- The letters (Ashkenazi names) ----------
+   h = letter, n = name shown on screen, s = how the computer voice is told to say it, g = practice group */
+const L = [
+  {h:'א', n:'Alef',  s:'Ah-leff', g:0},
+  {h:'בּ', n:'Beis',  s:'Base',    g:0},
+  {h:'ב', n:'Veis',  s:'Vayss',   g:0},
+  {h:'ג', n:'Gimmel',s:'Ghimmel', g:0},
+  {h:'ד', n:'Daled', s:'Dah-led', g:0},
+  {h:'ה', n:'Hei',   s:'Hay',     g:0},
+  {h:'ו', n:'Vov',   s:'Vawv',    g:1},
+  {h:'ז', n:'Zayin', s:'Zah-yin', g:1},
+  {h:'ח', n:'Ches',  s:'Hess',    g:1},
+  {h:'ט', n:'Tes',   s:'Tess',    g:1},
+  {h:'י', n:'Yud',   s:'Yood',    g:1},
+  {h:'כּ', n:'Kof',   s:'Kawf',    g:2},
+  {h:'כ', n:'Chof',  s:'Hawf',    g:2},
+  {h:'ך', n:'Chof Sofis', s:'Hawf so-fiss', g:2},
+  {h:'ל', n:'Lamed', s:'Lah-med', g:2},
+  {h:'מ', n:'Mem',   s:'Mem',     g:2},
+  {h:'ם', n:'Mem Sofis', s:'Mem so-fiss', g:2},
+  {h:'נ', n:'Nun',   s:'Noon',    g:2},
+  {h:'ן', n:'Nun Sofis', s:'Noon so-fiss', g:2},
+  {h:'ס', n:'Samech',s:'Sah-meh', g:3},
+  {h:'ע', n:'Ayin',  s:'Ah-yin',  g:3},
+  {h:'פּ', n:'Pei',   s:'Pay',     g:3},
+  {h:'פ', n:'Fei',   s:'Fay',     g:3},
+  {h:'ף', n:'Fei Sofis', s:'Fay so-fiss', g:3},
+  {h:'צ', n:'Tzadik',s:'Tsah-dik',g:3},
+  {h:'ץ', n:'Tzadik Sofis', s:'Tsah-dik so-fiss', g:3},
+  {h:'ק', n:'Kuf',   s:'Koof',    g:4},
+  {h:'ר', n:'Reish', s:'Raysh',   g:4},
+  {h:'שׁ', n:'Shin',  s:'Shin',    g:4},
+  {h:'שׂ', n:'Sin',   s:'Sin',     g:4},
+  {h:'תּ', n:'Tof',   s:'Tawf',    g:4},
+  {h:'ת', n:'Sof',   s:'Sawf',    g:4},
+];
+L.forEach((l, i) => l.id = i);
+const KID = 'Daniel';   // the child's name, used in the title and in spoken praise
+const GROUPS = ['א – ה', 'ו – י', 'כּ – ן', 'ס – ץ', 'ק – ת'];
+const COLORS = ['#ff4d6d','#ff9f1c','#06b77c','#3a86ff','#8338ec','#e85d04','#d6336c','#0096c7'];
+const color = l => COLORS[l.id % COLORS.length];
+const $ = id => document.getElementById(id);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+
+/* ---------- Stars ---------- */
+let stars = store.get('ab_stars', 0);
+function showStars(bump) {
+  document.querySelectorAll('.starcount').forEach(e => { e.textContent = stars; if (bump) { e.parentElement.classList.remove('bump'); void e.parentElement.offsetWidth; e.parentElement.classList.add('bump'); } });
+}
+function addStar() { stars++; store.set('ab_stars', stars); showStars(true); }
+
+/* ---------- Practice groups ---------- */
+/* ---------- Which letters the games ask about (chosen one by one under Parents) ---------- */
+const MIN_LETTERS = 3;
+let chosen = store.get('ab_letters', null);
+if (!Array.isArray(chosen)) chosen = L.filter(l => l.g === 0).map(l => l.id);
+chosen = chosen.filter(i => L[i]);
+if (chosen.length < MIN_LETTERS) chosen = L.filter(l => l.g === 0).map(l => l.id);
+const pool = () => L.filter(l => chosen.includes(l.id));
+
+/* ---------- Sound ---------- */
+let actx;
+function tone(freq, dur, delay = 0, type = 'sine', vol = .18) {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + delay;
+    o.type = type; o.frequency.value = freq; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur);
+  } catch {}
+}
+const sfxYes = () => { tone(523, .15); tone(659, .15, .12); tone(784, .3, .24); };
+const sfxNo = () => tone(196, .25, 0, 'triangle', .14);
+const sfxPop = () => { tone(900, .07, 0, 'square', .1); sfxYes(); };
+
+const recs = {};            // letter id -> object URL of the parent's recording
+let seq = 0, curAudio = null;
+function pickVoice() {
+  const vs = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+  return vs.find(v => v.name === 'Samantha') || vs.find(v => v.lang === 'en-US' && v.localService) || vs.find(v => v.lang && v.lang.startsWith('en')) || null;
+}
+function tts(text) {
+  return new Promise(res => {
+    if (!window.speechSynthesis) return res();
+    const u = new SpeechSynthesisUtterance(text);
+    const v = pickVoice(); if (v) u.voice = v;
+    u.lang = 'en-US'; u.rate = .85; u.pitch = 1.15;
+    let done = false; const fin = () => { if (!done) { done = true; res(); } };
+    u.onend = fin; u.onerror = fin; setTimeout(fin, 5000);
+    speechSynthesis.speak(u);
+  });
+}
+/* Built-in recordings live in the audio folder: l0.m4a … l31.m4a for the letters, plus the phrases below.
+   Sounds are decoded into Web Audio buffers (the dependable way to play back-to-back clips on an iPhone);
+   if that is not possible a plain audio element is used, and if the file is missing, the computer voice. */
+function ctx() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); } catch {} return actx; }
+function unlock() { const c = ctx(); if (c && c.state !== 'running') c.resume(); }
+['pointerdown', 'touchend', 'click'].forEach(e => document.addEventListener(e, unlock, true));
+try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}   // keep sound on with the iPhone silent switch
+const GREAT = 'Great job, ' + KID + '!';
+const GOODTRY = 'Good try, ' + KID + '! Let\'s play again!';
+const CLIPS = { 'Where is': 'where', 'Pop the': 'pop', 'That is': 'that', 'Try again!': 'try', [GREAT]: 'great', 'Yay!': 'yay', 'Uh oh, it flew away!': 'uhoh', 'You are an Alef Beis star!': 'star',
+  'Hit the': 'hitthe', 'Hit!': 'hit', 'Home run!': 'homerun', 'Strike!': 'strike', [GOODTRY]: 'goodtry' };
+const bufs = {}, bad = {};
+let curSrc = null;
+async function loadBuf(name, data) { try { const raw = await data; bufs[name] = await ctx().decodeAudioData(raw); } catch {} }
+function preload(name) { loadBuf(name, fetch('audio/' + name + '.m4a').then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); })); }
+function playSound(name, url, fallback) {
+  return new Promise(res => {
+    let done = false; const fin = () => { if (!done) { done = true; res(); } };
+    if (bufs[name] && ctx()) {
+      const src = actx.createBufferSource(); src.buffer = bufs[name]; src.connect(actx.destination);
+      src.onended = fin; setTimeout(fin, src.buffer.duration * 1000 + 600); curSrc = src; unlock(); src.start(); return;
+    }
+    if (bad[name]) return tts(fallback).then(res);
+    const a = curAudio = new Audio(url);
+    a.onended = fin; a.onerror = () => { bad[name] = true; if (!done) { done = true; tts(fallback).then(res); } };
+    setTimeout(fin, 6000); a.play().catch(() => { if (!bad[name]) fin(); });
+  });
+}
+const playClip = (name, fallback) => playSound(name, 'audio/' + name + '.m4a', fallback);
+function playLetter(l) {
+  return recs[l.id] ? playSound('r' + l.id, recs[l.id], l.s) : playClip('l' + l.id, l.s);
+}
+function hush() { seq++; if (window.speechSynthesis) speechSynthesis.cancel(); if (curAudio) { curAudio.pause(); curAudio = null; } if (curSrc) { try { curSrc.onended = null; curSrc.stop(); } catch {} curSrc = null; } }
+/* say(['Where is', letterObject]) — strings use the computer voice, letters use the recording if there is one */
+async function say(parts) {
+  hush(); const my = seq;
+  for (const p of parts) { if (my !== seq) return; await (typeof p !== 'string' ? playLetter(p) : CLIPS[p] ? playClip(CLIPS[p], p) : tts(p)); }
+}
+if (window.speechSynthesis) speechSynthesis.getVoices();
+L.forEach(l => preload('l' + l.id)); Object.values(CLIPS).forEach(preload);
+
+/* ---------- Confetti ---------- */
+function confetti(n = 22) {
+  const bits = ['⭐','🎉','✨','💛','💜','💚','🎊','🌟'];
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('span'); s.className = 'conf'; s.textContent = pick(bits);
+    s.style.left = Math.random() * 96 + 'vw'; s.style.animationDuration = 1.4 + Math.random() * 1.4 + 's'; s.style.animationDelay = Math.random() * .3 + 's';
+    s.addEventListener('animationend', () => s.remove()); document.body.appendChild(s);
+  }
+}
+
+/* ---------- Screens ---------- */
+let current = 'home', lastGame = 'find';
+function go(id) {
+  hush(); stopBalloons(); stopMic();
+  if (id === 'twins') { fMode = 'twins'; id = 'find'; } else if (id === 'find') fMode = 'find';
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  current = id; showStars();
+  if (id === 'baseball') startBaseball();
+  if (id === 'learn') startLearn();
+  if (id === 'find') startFind();
+  if (id === 'balloons') startBalloons();
+  if (id === 'parents') drawParents();
+}
+document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+$('again').addEventListener('click', () => go(lastGame));
+function finish(game, won = true) {
+  lastGame = game; go('done');
+  $('doneIcon').textContent = won ? '🏆' : '🎈';
+  $('doneText').textContent = won ? 'Great job, ' + KID + '!' : 'Good try! Play again?';
+  if (won) { confetti(40); sfxYes(); say([GREAT, 'You are an Alef Beis star!']); }
+  else say([GOODTRY]);
+}
+function dots(el, n, total) { el.innerHTML = ''; for (let i = 0; i < total; i++) { const d = document.createElement('div'); d.className = 'dot' + (i < n ? ' done' : ''); el.appendChild(d); } }
+
+/* ---------- Meet the Letters ---------- */
+let li = 0;
+function startLearn() {
+  const g = $('grid');
+  if (!g.children.length) L.forEach(l => {
+    const b = document.createElement('button'); b.className = 'tile heb'; b.textContent = l.h; b.style.background = color(l);
+    b.addEventListener('click', () => showLetter(l.id, true)); g.appendChild(b);
+  });
+  showLetter(li, false);
+}
+function showLetter(i, speak) {
+  li = (i + L.length) % L.length; const l = L[li], c = $('stagecard');
+  $('stageHeb').textContent = l.h; $('stageName').textContent = l.n; c.style.background = color(l);
+  c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
+  [...$('grid').children].forEach((t, k) => t.classList.toggle('sel', k === li));
+  if (speak) { tone(660, .08); say([l]); }
+}
+$('stagecard').addEventListener('click', () => showLetter(li, true));
+$('nextL').addEventListener('click', () => showLetter(li + 1, true));
+$('prevL').addEventListener('click', () => showLetter(li - 1, true));
+
+/* ---------- Find the Letter ---------- */
+const ROUND = 8;
+/* Letters that are easy to mix up. "Look-Alikes" shows one of these families at a time. */
+const TWINS = [
+  ['Beis', 'Veis', 'Kof', 'Chof'],
+  ['Pei', 'Fei'],
+  ['Daled', 'Reish', 'Chof Sofis'],
+  ['Hei', 'Ches', 'Tof', 'Sof'],
+  ['Vov', 'Zayin', 'Yud', 'Nun Sofis'],
+  ['Gimmel', 'Nun'],
+  ['Tes', 'Mem'],
+  ['Samech', 'Mem Sofis'],
+  ['Ayin', 'Tzadik'],
+  ['Shin', 'Sin'],
+  ['Chof Sofis', 'Nun Sofis', 'Fei Sofis', 'Tzadik Sofis'],
+].map(g => g.map(n => L.find(l => l.n === n)));
+/* Only families containing a letter switched on under Parents are used, and only those letters are asked for.
+   The rest of the family still appears as the look-alike choices. */
+function twinFamilies() {
+  const mine = TWINS.filter(g => g.some(l => chosen.includes(l.id)));
+  return mine.length ? mine : TWINS;
+}
+let fTarget = null, fDone = 0, fStreak = 0, fLock = false, fMode = 'find';
+function startFind() { fDone = 0; fStreak = 0; fTarget = null; nextFind(); }
+function nextFind() {
+  fLock = false; let opts;
+  if (fMode === 'twins') {
+    const fams = twinFamilies(), fam = pick(fams);
+    const askable = fam.filter(l => chosen.includes(l.id)), from = askable.length ? askable : fam;
+    fTarget = pick(from.length > 1 ? from.filter(l => l !== fTarget) : from); opts = shuffle(fam);
+  } else {
+    const p = pool();
+    fTarget = pick(p.filter(l => l !== fTarget));
+    const n = Math.min(fStreak >= 3 ? 4 : 3, p.length);
+    opts = shuffle([fTarget, ...shuffle(p.filter(l => l !== fTarget)).slice(0, n - 1)]);
+  }
+  dots($('findDots'), fDone, ROUND);
+  $('findText').textContent = 'Where is ' + fTarget.n + '?';
+  const box = $('choices'); box.innerHTML = '';
+  opts.forEach(l => {
+    const b = document.createElement('button'); b.className = 'choice heb pop'; b.textContent = l.h;
+    b.style.background = fMode === 'twins' ? color(opts[0]) : color(l);     // same color, so only the shape tells them apart
+    b.addEventListener('click', () => chooseFind(l, b)); box.appendChild(b);
+  });
+  say(['Where is', fTarget]);
+}
+function chooseFind(l, b) {
+  if (fLock || b.classList.contains('wrong')) return;
+  if (l === fTarget) {
+    fLock = true; fDone++; fStreak++; b.classList.remove('pop'); b.classList.add('right');
+    sfxYes(); confetti(); addStar(); dots($('findDots'), fDone, ROUND);
+    say([pick([GREAT, 'Yay!']), fTarget]);
+    setTimeout(() => { if (current !== 'find') return; fDone >= ROUND ? finish(fMode) : nextFind(); }, 2300);
+  } else {
+    fStreak = 0; b.classList.remove('pop'); b.classList.add('wrong'); sfxNo();
+    say(['That is', l, 'Try again!', 'Where is', fTarget]);
+  }
+}
+$('findPrompt').addEventListener('click', () => fTarget && say(['Where is', fTarget]));
+
+/* ---------- Pop the Balloon ----------
+   One balloon with the asked-for letter is in the air at a time. Pop it for a star.
+   If it floats away, a heart is lost, the game slows down and the next one glows as a hint.
+   Pop 8 to win; the round ends early if all hearts are gone. */
+const HEARTS = 5;
+let bTarget = null, bDone = 0, bTimer = null, bLane = 0, bLives = HEARTS, bSpeed = 11, bHint = false, bOver = false;
+function stopBalloons() { clearTimeout(bTimer); bTimer = null; $('sky').innerHTML = ''; }
+function startBalloons() {
+  bDone = 0; bTarget = null; bLives = HEARTS; bSpeed = 11; bHint = false; bOver = false;
+  setBalloonTarget(); drawBalloonHud(); say(['Pop the', bTarget]); bTimer = setTimeout(spawnLoop, bSpeed * 120);
+}
+function drawBalloonHud() {
+  dots($('balDots'), bDone, ROUND);
+  $('balHearts').textContent = '❤️'.repeat(bLives) + '🤍'.repeat(HEARTS - bLives);
+}
+function setBalloonTarget() {
+  bTarget = pick(pool().filter(l => l !== bTarget));
+  $('balText').textContent = 'Pop ' + bTarget.n + '!';
+  /* A balloon with this letter may already be floating. It only "counts" (and can cost a heart) if it is still
+     in the lower part of the screen with plenty of time to be popped; otherwise a fresh one is sent up right away. */
+  const h = $('sky').clientHeight || innerHeight;
+  [...$('sky').children].forEach(b => {
+    if (!b.classList || !b.classList.contains('balloon')) return;
+    b._counts = false; b.classList.remove('hint');
+  });
+  const low = [...$('sky').children].filter(b => b._l === bTarget && b.classList.contains('balloon') && !b.classList.contains('popped') && b.getBoundingClientRect().top > h * .5)
+    .sort((x, y) => y.getBoundingClientRect().top - x.getBoundingClientRect().top)[0];      // only the lowest one counts
+  if (low) { low._counts = true; low.classList.toggle('hint', bHint); }
+  if (current === 'balloons' && !bOver && !hasCountingTarget()) spawn();
+}
+function hasCountingTarget() { return [...$('sky').children].some(b => b._l === bTarget && b._counts && !b.classList.contains('popped')); }
+function spawnLoop() {
+  if (current !== 'balloons' || bOver) return;
+  spawn();
+  bTimer = setTimeout(spawnLoop, bSpeed * 120);        // faster balloons also come more often
+}
+function spawn() {
+  const sky = $('sky'), p = pool();
+  const l = hasCountingTarget() ? pick(p.filter(x => x !== bTarget)) : bTarget;
+  const b = document.createElement('button'); b.className = 'balloon heb'; b._l = l; b._counts = l === bTarget;
+  b.innerHTML = '<span></span>'; b.firstChild.textContent = l.h;
+  b.style.background = pick(COLORS);
+  bLane = (bLane + 2 + Math.floor(Math.random() * 2)) % 5;           // 5 lanes, never the same one twice in a row
+  b.style.left = (4 + bLane * 18 + Math.random() * 4) + '%';
+  const d = bSpeed + Math.random() * 2;
+  b.style.setProperty('--d', d + 's'); b.style.animationDuration = d + 's';
+  if (l === bTarget && bHint) b.classList.add('hint');
+  b.addEventListener('animationend', e => {
+    if (e.target !== b || (e.animationName !== 'rise' && e.animationName !== 'burst')) return;
+    const escaped = e.animationName === 'rise' && b._l === bTarget && b._counts;
+    b.remove(); if (escaped) flewAway();
+  });
+  b.addEventListener('pointerdown', () => tapBalloon(b));
+  sky.appendChild(b);
+}
+function flewAway() {
+  if (current !== 'balloons' || bOver) return;
+  bLives--; bHint = true; bSpeed = Math.min(13, bSpeed + 1.5);
+  drawBalloonHud(); tone(330, .2, 0, 'triangle', .15); tone(247, .35, .18, 'triangle', .15);
+  const h = $('balHearts'), pr = $('balPrompt');
+  h.classList.remove('lost'); pr.classList.remove('nudge'); void h.offsetWidth; h.classList.add('lost'); pr.classList.add('nudge');
+  if (bLives <= 0) { bOver = true; setTimeout(() => current === 'balloons' && finish('balloons', false), 900); return; }
+  spawn();                                   // send the letter up again straight away
+  say(['Uh oh, it flew away!', 'Pop the', bTarget]);
+}
+function tapBalloon(b) {
+  if (bOver || b.classList.contains('popped')) return;
+  if (b._l === bTarget) {
+    const r = b.getBoundingClientRect(), boom = document.createElement('span');
+    boom.className = 'boom'; boom.textContent = '💥'; boom.style.left = r.left + r.width / 2 + 'px'; boom.style.top = r.top + r.height / 2 + 'px';
+    boom.addEventListener('animationend', () => boom.remove()); $('sky').appendChild(boom);
+    b.style.setProperty('--y', new DOMMatrix(getComputedStyle(b).transform).m42 + 'px');
+    b.classList.add('popped'); sfxPop(); confetti(12); addStar(); bDone++;
+    bHint = false; bSpeed = Math.max(7.5, bSpeed - .4);
+    if (bDone >= ROUND) { bOver = true; drawBalloonHud(); setTimeout(() => current === 'balloons' && finish('balloons'), 700); return; }
+    const was = bTarget; setBalloonTarget(); drawBalloonHud();
+    say([pick([GREAT, 'Yay!']), 'Pop the', bTarget]);
+  } else {
+    b.classList.remove('wob'); void b.offsetWidth; b.classList.add('wob'); sfxNo();
+    say(['That is', b._l, 'Pop the', bTarget]);
+  }
+}
+$('balPrompt').addEventListener('click', () => bTarget && say(['Pop the', bTarget]));
+
+/* ---------- Baseball ----------
+   Three balls are pitched. Tap the ball with the asked-for letter to get a hit and move the runner one base.
+   A wrong ball is a strike (it just fades, and he tries again). Four hits bring the runner home for a run; 2 runs win. */
+const BASES = [[50, 100], [100, 50], [50, 0], [0, 50]], RUNS_TO_WIN = 2;
+let bbTarget = null, bbBase = 0, bbRuns = 0, bbStrikes = 0, bbLock = false;
+function startBaseball() { bbTarget = null; bbBase = 0; bbRuns = 0; nextPitch(); }
+function drawBaseball() {
+  $('bbRuns').textContent = bbRuns;
+  const [x, y] = BASES[bbBase % 4], r = $('bbRunner'); r.style.left = x + '%'; r.style.top = y + '%';
+}
+function umpire(text) { const c = $('bbCall'); c.textContent = text; c.classList.remove('show'); void c.offsetWidth; c.classList.add('show'); }
+function nextPitch() {
+  const p = pool(); bbLock = false; bbStrikes = 0;
+  bbTarget = pick(p.filter(l => l !== bbTarget));
+  const opts = shuffle([bbTarget, ...shuffle(p.filter(l => l !== bbTarget)).slice(0, 2)]);
+  $('bbText').textContent = 'Hit ' + bbTarget.n + '!';
+  const box = $('bbBalls'); box.innerHTML = '';
+  opts.forEach((l, i) => {
+    const b = document.createElement('button'); b.className = 'ball heb'; b.style.animationDelay = i * .15 + 's';
+    b.innerHTML = '<span></span>'; b.firstChild.textContent = l.h;
+    b.addEventListener('click', () => swing(l, b)); box.appendChild(b);
+  });
+  drawBaseball(); tone(500, .12, 0, 'triangle', .1);
+  say(['Hit the', bbTarget]);
+}
+function swing(l, b) {
+  if (bbLock || b.classList.contains('wrong')) return;
+  if (l === bbTarget) {
+    bbLock = true; b.style.animationDelay = '0s'; b.classList.add('hit');
+    tone(1400, .04, 0, 'square', .2); tone(180, .12, 0, 'triangle', .3); sfxYes(); addStar();
+    bbBase++;
+    const home = bbBase === 4;
+    if (home) { bbBase = 0; bbRuns++; umpire('HOME RUN! 🎉'); confetti(34); } else { umpire('HIT!'); confetti(10); }
+    drawBaseball();
+    say(home ? ['Home run!', GREAT] : ['Hit!', 'Yay!']);
+    setTimeout(() => { if (current !== 'baseball') return; bbRuns >= RUNS_TO_WIN ? finish('baseball') : nextPitch(); }, home ? 3300 : 2200);
+  } else {
+    bbStrikes++; b.classList.add('wrong'); sfxNo(); umpire('STRIKE ' + bbStrikes + '!');
+    say(['Strike!', 'That is', l, 'Hit the', bbTarget]);
+  }
+}
+$('bbPrompt').addEventListener('click', () => bbTarget && say(['Hit the', bbTarget]));
+
+/* ---------- Parents: groups + voice recordings ---------- */
+let db = null, mic = null, recorder = null, liveId = null, recTimer = null;
+function openDb() {
+  return new Promise(res => {
+    try {
+      const r = indexedDB.open('alefbeis', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('recs');
+      r.onsuccess = () => { db = r.result; res(); }; r.onerror = () => res();
+    } catch { res(); }
+  });
+}
+function loadRecs() {
+  if (!db) return;
+  const c = db.transaction('recs').objectStore('recs').openCursor();
+  c.onsuccess = () => { const cur = c.result; if (cur) { recs[cur.key] = URL.createObjectURL(cur.value); loadBuf('r' + cur.key, cur.value.arrayBuffer()); cur.continue(); } };
+}
+openDb().then(loadRecs);
+
+function drawParents() {
+  const s = $('sets'); s.innerHTML = '';
+  const quick = (label, ids) => {
+    const allOn = ids.every(i => chosen.includes(i));
+    const b = document.createElement('button'); b.className = 'set heb' + (allOn ? ' on' : ''); b.textContent = label;
+    b.addEventListener('click', () => setChosen(allOn ? chosen.filter(i => !ids.includes(i)) : [...new Set([...chosen, ...ids])]));
+    s.appendChild(b);
+  };
+  GROUPS.forEach((name, g) => quick(name, L.filter(l => l.g === g).map(l => l.id)));
+  quick('All', L.map(l => l.id));
+  const pg = $('pickgrid'); pg.innerHTML = '';
+  L.forEach(l => {
+    const on = chosen.includes(l.id);
+    const b = document.createElement('button'); b.className = 'rec' + (on ? ' has' : '');
+    b.innerHTML = '<span class="heb"></span><small></small>';
+    b.children[0].textContent = l.h; b.children[1].textContent = (on ? '✓ ' : '') + l.n;
+    b.addEventListener('click', () => setChosen(on ? chosen.filter(i => i !== l.id) : [...chosen, l.id]));
+    pg.appendChild(b);
+  });
+  $('pickcount').textContent = chosen.length + ' of ' + L.length + ' letters in the games';
+  const r = $('recgrid'); r.innerHTML = '';
+  L.forEach(l => {
+    const b = document.createElement('button');
+    b.className = 'rec' + (recs[l.id] ? ' has' : '') + (liveId === l.id ? ' live' : '');
+    b.innerHTML = '<span class="heb"></span><small></small>';
+    b.children[0].textContent = l.h;
+    b.children[1].textContent = liveId === l.id ? '● recording…' : (recs[l.id] ? '✓ ' : '🎤 ') + l.n;
+    b.addEventListener('click', () => toggleRec(l));
+    r.appendChild(b);
+  });
+}
+function setChosen(ids) {
+  if (ids.length < MIN_LETTERS) { $('pickmsg').textContent = 'Keep at least ' + MIN_LETTERS + ' letters switched on so the games have choices to show.'; return; }
+  $('pickmsg').textContent = ''; chosen = ids.sort((a, b) => a - b); store.set('ab_letters', chosen); drawParents();
+}
+function stopMic() {
+  clearTimeout(recTimer);
+  if (recorder && recorder.state !== 'inactive') recorder.stop();
+  if (mic) { mic.getTracks().forEach(t => t.stop()); mic = null; }
+}
+async function toggleRec(l) {
+  $('recmsg').textContent = '';
+  if (liveId != null) { const same = liveId === l.id; clearTimeout(recTimer); recorder.stop(); if (same) return; await new Promise(r => setTimeout(r, 250)); }
+  try {
+    if (!mic) mic = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const chunks = []; recorder = new MediaRecorder(mic);
+    recorder.ondataavailable = e => e.data.size && chunks.push(e.data);
+    recorder.onstop = () => {
+      liveId = null;
+      if (chunks.length) {
+        const blob = new Blob(chunks, { type: recorder.mimeType });
+        if (recs[l.id]) URL.revokeObjectURL(recs[l.id]);
+        recs[l.id] = URL.createObjectURL(blob); delete bufs['r' + l.id]; delete bad['r' + l.id]; loadBuf('r' + l.id, blob.arrayBuffer());
+        if (db) db.transaction('recs', 'readwrite').objectStore('recs').put(blob, l.id);
+        if (current === 'parents') say([l]);
+      }
+      if (current === 'parents') drawParents();
+    };
+    hush(); recorder.start(); liveId = l.id; drawParents();
+    recTimer = setTimeout(() => recorder.state !== 'inactive' && recorder.stop(), 3000);
+  } catch (e) {
+    liveId = null; drawParents();
+    $('recmsg').textContent = 'Could not use the microphone. Please allow microphone access for this page and try again.';
+  }
+}
+$('clearRec').addEventListener('click', () => {
+  if (!confirm('Delete all of your recordings?')) return;
+  Object.keys(recs).forEach(k => { URL.revokeObjectURL(recs[k]); delete recs[k]; delete bufs['r' + k]; });
+  if (db) db.transaction('recs', 'readwrite').objectStore('recs').clear();
+  drawParents();
+});
+$('resetStars').addEventListener('click', () => { stars = 0; store.set('ab_stars', 0); showStars(); });
+
+$('kidTitle').textContent = KID + "'s ";
+showStars();
+</script>
+</body>
+</html>
