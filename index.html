@@ -905,15 +905,19 @@ const clashKey = l => SND[l.id] || 'silent';                         // letters 
 const wkey = w => 'w_' + w.replace(/[^a-z]/g, '');
 Object.values(PICS).flat().forEach(([w]) => { CLIPS[w] = wkey(w); preload(wkey(w)); });
 let pTarget = null, pWord = null, pDone = 0, pLock = false;
+const pSeen = new Set();
 function startPics() { pDone = 0; pTarget = null; pWord = null; nextPic(); }
 function nextPic() {
   newStyle(); pLock = false;
   const ok = from => from.filter(l => !SOFIS.includes(l.id) && PICS[wordKey(l)] && from.some(o => clashKey(o) !== clashKey(l)));
   let src = pool(); if (!ok(src).length) src = L;       // if none of his letters has a picture, use the whole Alef Beis
-  const can = ok(src), fresh = can.filter(l => !pTarget || clashKey(l) !== clashKey(pTarget));
-  pTarget = pick(fresh.length ? fresh : can);
-  const key = wordKey(pTarget), words = PICS[key].filter(w => w !== pWord);
-  pWord = pick(words.length ? words : PICS[key]);
+  /* every picture for his letters comes up once before any picture repeats (the list carries over between rounds) */
+  const can = ok(src), all = [];
+  can.forEach(l => PICS[wordKey(l)].forEach(w => all.push([l, w])));
+  let left = all.filter(([, w]) => !pSeen.has(w[0]));
+  if (!left.length) { pSeen.clear(); left = all; }
+  const fresh = left.filter(([l, w]) => w !== pWord && (!pTarget || clashKey(l) !== clashKey(pTarget)));
+  [pTarget, pWord] = pick(fresh.length ? fresh : left); pSeen.add(pWord[0]);
   const opts = shuffle([pTarget, ...shuffle(src.filter(o => clashKey(o) !== clashKey(pTarget))).slice(0, 2)]);
   dots($('picDots'), pDone, ROUND);
   const e = $('picEmoji'); if (pWord[1][0] === '<') e.innerHTML = pWord[1]; else e.textContent = pWord[1]; e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop');
