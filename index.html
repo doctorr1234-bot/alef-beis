@@ -388,6 +388,10 @@
     <p>Choose how the letters are drawn, so he learns to recognize them in different print. "Mix" changes the style with every question.</p>
     <div class="sets" id="styleOpt"></div>
 
+    <h3>Baseball and Football: names or sounds</h3>
+    <p>"Names" asks for a letter by its name ("Hit the Beis"). "Sounds" asks for the sound it makes ("Hit the letter that says b"). "Mix" switches between them. Alef and Ayin are silent, so they are only asked by name.</p>
+    <div class="sets" id="askOpt"></div>
+
     <h3>Baseball</h3>
     <p>With four balls, three wrong taps is a strikeout, and three outs end the game. With three balls there are no strikeouts.</p>
     <div class="sets" id="bbOpt"></div>
@@ -546,7 +550,8 @@ const GREAT = 'Great job, ' + KID + '!';
 const GOODTRY = 'Good try, ' + KID + '! Let\'s play again!';
 const CLIPS = { 'Where is': 'where', 'Pop the': 'pop', 'That is': 'that', 'Try again!': 'try', [GREAT]: 'great', 'Yay!': 'yay', 'Uh oh, it flew away!': 'uhoh', 'You are an Alef Beis star!': 'star',
   'Hit the': 'hitthe', 'Hit!': 'hit', 'Home run!': 'homerun', 'Strike!': 'strike', [GOODTRY]: 'goodtry',
-  'Throw it to': 'throw', 'First down!': 'firstdown', 'Touchdown!': 'touchdown', 'Incomplete!': 'incomplete', 'Turnover!': 'turnover', 'Strike three, you\'re out!': 'strikeout' };
+  'Throw it to': 'throw', 'First down!': 'firstdown', 'Touchdown!': 'touchdown', 'Incomplete!': 'incomplete', 'Turnover!': 'turnover', 'Strike three, you\'re out!': 'strikeout',
+  'Hit the letter that says': 'hitsays', 'Throw it to the letter that says': 'throwsays' };
 const bufs = {}, bad = {};
 let curSrc = null;
 async function loadBuf(name, data) { try { const raw = await data; bufs[name] = await ctx().decodeAudioData(raw); } catch {} }
@@ -572,10 +577,34 @@ function hush() { seq++; if (window.speechSynthesis) speechSynthesis.cancel(); i
 /* say(['Where is', letterObject]) — strings use the computer voice, letters use the recording if there is one */
 async function say(parts) {
   hush(); const my = seq;
-  for (const p of parts) { if (my !== seq) return; await (typeof p !== 'string' ? playLetter(p) : CLIPS[p] ? playClip(CLIPS[p], p) : tts(p)); }
+  for (const p of parts) { if (my !== seq) return; await (typeof p !== 'string' ? (p.snd ? playClip('s_' + p.snd, SOUNDS[p.snd][1]) : playLetter(p)) : CLIPS[p] ? playClip(CLIPS[p], p) : tts(p)); }
 }
+
+/* ---------- Letter sounds (for "sounds" mode in Baseball and Football) ----------
+   SOUNDS: key -> [what the screen shows, how the computer voice says it until there is a recording in audio/s_<key>.m4a].
+   SND: the sound each letter makes, by letter id. Alef and Ayin are silent, so they are never asked by sound. */
+const SOUNDS = { b: ['b', 'buh'], v: ['v', 'vuh'], g: ['g', 'guh'], d: ['d', 'duh'], h: ['h', 'huh'], z: ['z', 'zuh'], ch: ['ch', 'kh'],
+  t: ['t', 'tuh'], y: ['y', 'yuh'], k: ['k', 'kuh'], l: ['l', 'luh'], m: ['m', 'mmm'], n: ['n', 'nnn'], s: ['s', 'sss'], p: ['p', 'puh'],
+  f: ['f', 'fff'], tz: ['tz', 'tsuh'], r: ['r', 'ruh'], sh: ['sh', 'shhh'] };
+const SND = [null, 'b', 'v', 'g', 'd', 'h', 'v', 'z', 'ch', 't', 'y', 'k', 'ch', 'ch', 'l', 'm', 'm', 'n', 'n', 's', null, 'p', 'f', 'f', 'tz', 'tz', 'k', 'r', 'sh', 's', 't', 's'];
+let askMode = store.get('ab_ask', 'name');   // 'name', 'sound' or 'mix' (set under Parents)
+/* Pick the next question for Baseball or Football: a target letter, n choices, and whether it is asked by sound.
+   By sound, no other choice may make the same sound (so Kof is never next to Kuf when asking "k"). */
+function makeQ(prev, n) {
+  const p = pool();
+  if (askMode === 'sound' || (askMode === 'mix' && Math.random() < .5)) {
+    const can = p.filter(l => SND[l.id] && l !== prev && p.some(o => SND[o.id] !== SND[l.id]));
+    if (can.length) {
+      const t = pick(can), others = shuffle(p.filter(o => SND[o.id] !== SND[t.id])).slice(0, n - 1);
+      return { t, snd: SND[t.id], opts: shuffle([t, ...others]) };
+    }
+  }
+  const t = pick(p.filter(l => l !== prev));
+  return { t, snd: null, opts: shuffle([t, ...shuffle(p.filter(l => l !== t)).slice(0, Math.min(n, p.length) - 1)]) };
+}
+const showSnd = k => '\u201c' + SOUNDS[k][0] + '\u201d';
 if (window.speechSynthesis) speechSynthesis.getVoices();
-L.forEach(l => preload('l' + l.id)); Object.values(CLIPS).forEach(preload);
+L.forEach(l => preload('l' + l.id)); Object.values(CLIPS).forEach(preload); Object.keys(SOUNDS).forEach(k => preload('s_' + k));
 
 /* ---------- Avatar and store ----------
    Stars are spent here. Each item: id, slot (hat / face / outfit / hand / pet), n = name, p = price in stars,
@@ -913,6 +942,8 @@ $('balPrompt').addEventListener('click', () => bTarget && say(['Pop the', bTarge
    A wrong ball is a strike (it just fades, and he tries again). Four hits bring the runner home for a run; 2 runs win. */
 const BASES = [[50, 100], [100, 50], [50, 0], [0, 50]], RUNS_TO_WIN = 2, OUTS = 3;
 let bbFour = store.get('ab_bb4', true);      // four balls per pitch: three wrong taps is a strikeout (set under Parents)
+let bbSnd = null;
+const bbAsk = () => bbSnd ? ['Hit the letter that says', { snd: bbSnd }] : ['Hit the', bbTarget];
 let bbTarget = null, bbBase = 0, bbRuns = 0, bbStrikes = 0, bbOuts = 0, bbLock = false;
 function startBaseball() { bbTarget = null; bbBase = 0; bbRuns = 0; bbOuts = 0; $('bbCall').classList.remove('show'); nextPitch(); }
 function drawBaseball() {
@@ -923,11 +954,10 @@ function drawBaseball() {
 }
 function umpire(text, id = 'bbCall') { const c = $(id); c.textContent = text; c.classList.remove('show'); void c.offsetWidth; c.classList.add('show'); }
 function nextPitch() {
-  newStyle(); const p = pool(); bbLock = false; bbStrikes = 0;
-  bbTarget = pick(p.filter(l => l !== bbTarget));
-  const n = Math.min(bbFour ? 4 : 3, p.length);
-  const opts = shuffle([bbTarget, ...shuffle(p.filter(l => l !== bbTarget)).slice(0, n - 1)]);
-  $('bbText').textContent = 'Hit ' + bbTarget.n + '!';
+  newStyle(); bbLock = false; bbStrikes = 0;
+  const q = makeQ(bbTarget, bbFour ? 4 : 3), opts = q.opts, n = opts.length;
+  bbTarget = q.t; bbSnd = q.snd;
+  $('bbText').textContent = bbSnd ? 'Hit the one that says ' + showSnd(bbSnd) + '!' : 'Hit ' + bbTarget.n + '!';
   const box = $('bbBalls'); box.innerHTML = ''; box.classList.toggle('four', n === 4);
   opts.forEach((l, i) => {
     const b = document.createElement('button'); b.className = 'ball heb'; b.style.animationDelay = i * .15 + 's';
@@ -935,7 +965,7 @@ function nextPitch() {
     b.addEventListener('click', () => swing(l, b)); box.appendChild(b);
   });
   drawBaseball(); tone(500, .12, 0, 'triangle', .1);
-  say(['Hit the', bbTarget]);
+  say(bbAsk());
 }
 function swing(l, b) {
   if (bbLock || b.classList.contains('wrong')) return;
@@ -959,16 +989,17 @@ function swing(l, b) {
     setTimeout(() => { if (current !== 'baseball') return; bbOuts >= OUTS ? finish('baseball', false) : nextPitch(); }, 3800);
   } else {
     stat(bbTarget, l); b.classList.add('wrong'); sfxNo(); umpire('STRIKE ' + bbStrikes + '!');
-    say(['Strike!', 'That is', l, 'Hit the', bbTarget]);
+    say(['Strike!', 'That is', l, ...bbAsk()]);
   }
 }
-$('bbPrompt').addEventListener('click', () => bbTarget && say(['Hit the', bbTarget]));
+$('bbPrompt').addEventListener('click', () => bbTarget && say(bbAsk()));
 
 /* ---------- Football ----------
    Four receivers wear letters. Throwing to the right one is a first down and moves the ball 20 yards;
    four of those is a touchdown, and 2 touchdowns win. A wrong throw is incomplete: the right receiver is shown,
    a down is used, and a new play is called. Four incompletes in a row is a turnover and ends the game. */
 const FB_TDS = 2, DOWNS = ['1st', '2nd', '3rd', '4th'];
+let fbSnd = null;
 let fbTarget = null, fbYard = 20, fbTD = 0, fbDown = 1, fbLock = false;
 function startFootball() { fbTarget = null; fbYard = 20; fbTD = 0; fbDown = 1; $('fbCall').classList.remove('show'); nextPlay(); }
 function drawFootball() {
@@ -979,12 +1010,12 @@ function drawFootball() {
 const CHEERS = [['First down!'], ['Yay!'], [GREAT], ['First down!', 'Yay!']];
 let lastCheer = null;
 function cheer() { return lastCheer = pick(CHEERS.filter(c => c !== lastCheer)); }
-function sayPlay() { say(['Throw it to', fbTarget]); }
+function sayPlay() { say(fbSnd ? ['Throw it to the letter that says', { snd: fbSnd }] : ['Throw it to', fbTarget]); }
 function nextPlay() {
-  newStyle(); const p = pool(); fbLock = false;
-  fbTarget = pick(p.filter(l => l !== fbTarget));
-  const opts = shuffle([fbTarget, ...shuffle(p.filter(l => l !== fbTarget)).slice(0, Math.min(4, p.length) - 1)]);
-  $('fbText').textContent = 'Throw it to ' + fbTarget.n + '!';
+  newStyle(); fbLock = false;
+  const q = makeQ(fbTarget, 4), opts = q.opts;
+  fbTarget = q.t; fbSnd = q.snd;
+  $('fbText').textContent = fbSnd ? 'Throw it to the one that says ' + showSnd(fbSnd) + '!' : 'Throw it to ' + fbTarget.n + '!';
   const box = $('fbPlayers'); box.innerHTML = '';
   opts.forEach((l, i) => {
     const b = document.createElement('button'); b.className = 'jersey heb'; b.style.animationDelay = i * .1 + 's';
@@ -1096,6 +1127,13 @@ function drawParents() {
     b.append(sample, label);
     b.addEventListener('click', () => { styleMode = k; store.set('ab_style', k); newStyle(); if (k === 'mix') document.documentElement.style.setProperty('--heb', '"AB Siddur"'); drawParents(); });
     so.appendChild(b);
+  });
+  const ao = $('askOpt'); ao.innerHTML = '';
+  [['name', 'Names'], ['sound', 'Sounds'], ['mix', 'Mix']].forEach(([v, label]) => {
+    const b = document.createElement('button'); b.className = 'set' + (askMode === v ? ' on' : ''); b.textContent = label;
+    b.style.cssText = 'font-size:16px;direction:ltr';
+    b.addEventListener('click', () => { askMode = v; store.set('ab_ask', v); drawParents(); });
+    ao.appendChild(b);
   });
   const bo = $('bbOpt'); bo.innerHTML = '';
   [[true, '4 balls, with strikeouts'], [false, '3 balls, no strikeouts']].forEach(([v, label]) => {
