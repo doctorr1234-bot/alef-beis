@@ -900,6 +900,9 @@ const PICS = {
   tz: [['tzitzis', '<svg viewBox="0 0 100 100"><path d="M22 8h56a5 5 0 0 1 5 5v47H17V13a5 5 0 0 1 5-5z" fill="#fff" stroke="#aab6c6" stroke-width="2.5"/><ellipse cx="50" cy="17" rx="12" ry="8" fill="#cfe6ff" stroke="#aab6c6" stroke-width="2.5"/><rect x="17" y="42" width="66" height="5" fill="#1d3f8f"/><rect x="17" y="51" width="66" height="3" fill="#1d3f8f"/><g stroke="#5f6f86" stroke-width="3" stroke-linecap="round" fill="none"><path d="M19 60q-1 18 0 35M23 60v37M27 60q1 17 0 33M73 60q-1 17 0 33M77 60v37M81 60q1 18 0 35"/></g><g fill="#5f6f86"><rect x="17" y="66" width="12" height="5" rx="2.5"/><rect x="17" y="75" width="12" height="5" rx="2.5"/><rect x="71" y="66" width="12" height="5" rx="2.5"/><rect x="71" y="75" width="12" height="5" rx="2.5"/></g></svg>']],
 };
 const SOFIS = [13, 16, 18, 23, 25];
+/* Sounds shared by several letters are asked with one letter only: v = Vov, ch = Ches, t = Tes, k = Kuf, s = Samech.
+   Veis, Chof, Kof, Sin, Tof and Sof are never the answer here, and never shown next to a picture with their sound. */
+const NOPIC = [2, 12, 11, 29, 30, 31];
 const wordKey = l => SND[l.id] || (l.id === 0 ? 'alef' : 'ayin');   // which picture list a letter is asked with
 const clashKey = l => SND[l.id] || 'silent';                         // letters with the same clash key are never shown together
 const wkey = w => 'w_' + w.replace(/[^a-z]/g, '');
@@ -909,7 +912,7 @@ const pSeen = new Set();
 function startPics() { pDone = 0; pTarget = null; pWord = null; nextPic(); }
 function nextPic() {
   newStyle(); pLock = false;
-  const ok = from => from.filter(l => !SOFIS.includes(l.id) && PICS[wordKey(l)] && from.some(o => clashKey(o) !== clashKey(l)));
+  const ok = from => from.filter(l => !SOFIS.includes(l.id) && !NOPIC.includes(l.id) && PICS[wordKey(l)] && from.some(o => clashKey(o) !== clashKey(l)));
   let src = pool(); if (!ok(src).length) src = L;       // if none of his letters has a picture, use the whole Alef Beis
   /* every picture for his letters comes up once before any picture repeats (the list carries over between rounds) */
   const can = ok(src), all = [];
