@@ -56,6 +56,7 @@
   }
   .big .em { font-size: min(10vmin, 80px); line-height: 1.1; }
   .big:active { transform: translateY(7px); box-shadow: 0 2px 0 rgba(0,0,0,.22); }
+  .b7 { background: #d6336c; }
   .b1 { background: #ff6b6b; } .b2 { background: #8338ec; } .b3 { background: #06b77c; } .b4 { background: #ff9f1c; } .b5 { background: #1d6fd6; } .b6 { background: #8a4f24; }
   .homebar { position: absolute; top: max(14px, env(safe-area-inset-top)); left: max(14px, env(safe-area-inset-left)); right: max(14px, env(safe-area-inset-right)); display: flex; justify-content: space-between; }
   .parentbtn { background: rgba(255,255,255,.75); border-radius: 30px; padding: 10px 16px; font-size: 16px; }
@@ -74,6 +75,21 @@
   .tile { aspect-ratio: 1; border-radius: 18px; color: #fff; font-size: 40px; box-shadow: 0 5px 0 rgba(0,0,0,.2); display: grid; place-items: center; }
   .tile:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,.2); }
   .tile.sel { outline: 5px solid #fff; }
+
+  /* picture match */
+  .picrow { flex: 1 1 auto; min-height: 0; width: 100%; display: flex; flex-direction: column; align-items: center; }
+  .picbox { display: flex; flex-direction: column; align-items: center; gap: 1.5vh; margin-top: 1vh; }
+  #pics .pic { width: 30vmin; height: 30vmin; min-width: 120px; min-height: 120px; border-radius: 30px; background: #fff; box-shadow: 0 10px 0 rgba(0,0,0,.18); display: grid; place-items: center; font-size: 20vmin; line-height: 1; }
+  #pics .prompt { margin-top: 0; }
+  #pics .pic svg { width: 82%; height: 82%; }
+  #pics .choices { gap: 3vmin; }
+  #pics .choice { width: 28vmin; height: 28vmin; font-size: 18vmin; }
+  @media (orientation: portrait) { #pics .pic { width: 40vmin; height: 40vmin; font-size: 27vmin; } #pics .choice { width: 38vmin; height: 38vmin; font-size: 24vmin; max-width: none; max-height: none; } }
+  @media (max-height: 480px) and (orientation: landscape) {
+    .picrow { flex-direction: row; justify-content: center; gap: 5vw; }
+    #pics .pic { width: 46vmin; height: 46vmin; min-width: 0; min-height: 0; font-size: 32vmin; }
+    #pics .choices { flex: 0 1 auto; } #pics .choice { width: 34vmin; height: 34vmin; font-size: 22vmin; max-width: none; max-height: none; }
+  }
 
   /* find */
   .prompt { flex: 0 0 auto; margin-top: 2vh; background: #fff; border-radius: 40px; padding: 12px 26px; font-size: max(19px, 4.5vmin); font-weight: 700; box-shadow: 0 6px 0 rgba(0,0,0,.15); display: flex; align-items: center; gap: 12px; }
@@ -306,6 +322,7 @@
     <button class="big b3" data-go="balloons"><span class="em">🎈</span>Pop the Balloon</button>
     <button class="big b5" data-go="baseball"><span class="em">⚾</span>Baseball</button>
     <button class="big b6" data-go="football"><span class="em">🏈</span>Football</button>
+    <button class="big b7" data-go="pics"><span class="em">🖼️</span>Picture Match</button>
   </div>
 </section>
 
@@ -350,6 +367,15 @@
   <button class="prompt" id="fbPrompt">🔊 <span id="fbText"></span></button>
   <div class="choices" id="fbPlayers"></div>
   <div id="fbCall"></div>
+</section>
+
+<!-- PICTURE MATCH -->
+<section id="pics" class="screen">
+  <div class="bar"><button class="round" data-go="home">🏠</button><div class="dots" id="picDots"></div><div class="stars">⭐ <span class="starcount">0</span></div></div>
+  <div class="picrow">
+    <div class="picbox"><div class="pic" id="picEmoji"></div><button class="prompt" id="picPrompt">🔊 <span id="picText"></span></button></div>
+    <div class="choices" id="picChoices"></div>
+  </div>
 </section>
 
 <!-- DONE -->
@@ -551,7 +577,8 @@ const GOODTRY = 'Good try, ' + KID + '! Let\'s play again!';
 const CLIPS = { 'Where is': 'where', 'Pop the': 'pop', 'That is': 'that', 'Try again!': 'try', [GREAT]: 'great', 'Yay!': 'yay', 'Uh oh, it flew away!': 'uhoh', 'You are an Alef Beis star!': 'star',
   'Hit the': 'hitthe', 'Hit!': 'hit', 'Home run!': 'homerun', 'Strike!': 'strike', [GOODTRY]: 'goodtry',
   'Throw it to': 'throw', 'First down!': 'firstdown', 'Touchdown!': 'touchdown', 'Incomplete!': 'incomplete', 'Turnover!': 'turnover', 'Strike three, you\'re out!': 'strikeout',
-  'Hit the letter that says': 'hitsays', 'Throw it to the letter that says': 'throwsays' };
+  'Hit the letter that says': 'hitsays', 'Throw it to the letter that says': 'throwsays',
+  'Which letter does it start with?': 'picstart', 'starts with': 'startswith' };
 const bufs = {}, bad = {};
 let curSrc = null;
 async function loadBuf(name, data) { try { const raw = await data; bufs[name] = await ctx().decodeAudioData(raw); } catch {} }
@@ -575,7 +602,11 @@ function playLetter(l) {
 }
 function hush() { seq++; if (window.speechSynthesis) speechSynthesis.cancel(); if (curAudio) { curAudio.pause(); curAudio = null; } if (curSrc) { try { curSrc.onended = null; curSrc.stop(); } catch {} curSrc = null; } }
 /* say(['Where is', letterObject]) — strings use the computer voice, letters use the recording if there is one */
-async function say(parts) {
+/* later(fn, ms): run fn after ms, but never before the voice has finished, so praise is not cut off */
+let speaking = Promise.resolve();
+function later(fn, ms) { Promise.all([speaking, new Promise(r => setTimeout(r, ms))]).then(() => setTimeout(fn, 250)); }
+function say(parts) { return speaking = sayNow(parts); }
+async function sayNow(parts) {
   hush(); const my = seq;
   for (const p of parts) { if (my !== seq) return; await (typeof p !== 'string' ? (p.snd ? playClip('s_' + p.snd, SOUNDS[p.snd][1]) : playLetter(p)) : CLIPS[p] ? playClip(CLIPS[p], p) : tts(p)); }
 }
@@ -753,6 +784,7 @@ function go(id) {
   if (id === 'learn') startLearn();
   if (id === 'find') startFind();
   if (id === 'balloons') startBalloons();
+  if (id === 'pics') startPics();
   if (id === 'parents') drawParents();
   if (id === 'shop') { tryId = null; drawShop(); }
 }
@@ -775,16 +807,16 @@ function startLearn() {
     const b = document.createElement('button'); b.className = 'tile heb'; b.textContent = l.h; b.style.background = color(l);
     b.addEventListener('click', () => showLetter(l.id, true)); g.appendChild(b);
   });
-  showLetter(li, false);
+  showLetter(li, true);     // say the first letter too, not only after a tap
 }
 function showLetter(i, speak) {
   li = (i + L.length) % L.length; const l = L[li], c = $('stagecard');
   if (speak && styleMode === 'mix') { newStyle(); $('stageHeb').style.fontFamily = '"' + STYLES[styleNow][1] + '"'; document.documentElement.style.setProperty('--heb', '"AB Siddur"'); }
   else $('stageHeb').style.fontFamily = '';
-  $('stageHeb').textContent = l.h; $('stageName').textContent = l.n; c.style.background = color(l);
+  $('stageHeb').textContent = l.h; $('stageName').textContent = SND[l.id] ? l.n + ' \u00b7 ' + showSnd(SND[l.id]) : l.n + ' \u00b7 silent'; c.style.background = color(l);
   c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
   [...$('grid').children].forEach((t, k) => t.classList.toggle('sel', k === li));
-  if (speak) { tone(660, .08); say([l]); }
+  if (speak) { tone(660, .08); say(SND[l.id] ? [l, { snd: SND[l.id] }] : [l]); }   // its name, then its sound
 }
 $('stagecard').addEventListener('click', () => showLetter(li, true));
 $('nextL').addEventListener('click', () => showLetter(li + 1, true));
@@ -843,13 +875,70 @@ function chooseFind(l, b) {
     fLock = true; fDone++; fStreak++; b.classList.remove('pop'); b.classList.add('right');
     sfxYes(); confetti(); addStar(); dots($('findDots'), fDone, ROUND);
     say([pick([GREAT, 'Yay!']), fTarget]);
-    setTimeout(() => { if (current !== 'find') return; fDone >= ROUND ? finish(fMode) : nextFind(); }, 2300);
+    later(() => { if (current !== 'find') return; fDone >= ROUND ? finish(fMode) : nextFind(); }, 2300);
   } else {
     stat(fTarget, l); fStreak = 0; b.classList.remove('pop'); b.classList.add('wrong'); sfxNo();
     say(['That is', l, 'Try again!', 'Where is', fTarget]);
   }
 }
 $('findPrompt').addEventListener('click', () => fTarget && say(['Where is', fTarget]));
+
+/* ---------- Picture Match ----------
+   A picture of an English word is shown and said; he taps the letter that makes its first sound.
+   Words are grouped by sound, so "van" is right for Veis and for Vov, and the choices never hold two letters
+   with the same sound. Alef and Ayin are silent, so they get their own words (esrog, einayim) and are never
+   shown together. Sofis letters never start a word, so they are not asked here (they can still be wrong choices).
+   Each word is said with the recording audio/w_<word>.m4a, or the computer voice until there is one. */
+const PICS = {
+  b: [['ball', '⚾'], ['bear', '🐻']], v: [['van', '🚐'], ['violin', '🎻']], g: [['goat', '🐐'], ['gift', '🎁']],
+  d: [['dog', '🐕'], ['duck', '🦆']], h: [['hat', '🎩'], ['horse', '🐴']], z: [['zebra', '🦓']], ch: [['challah', '🍞']],
+  t: [['tiger', '🐯'], ['turtle', '🐢']], y: [['yo-yo', '🪀'], ['yarn', '🧶']], k: [['kite', '🪁'], ['key', '🔑']],
+  l: [['lion', '🦁'], ['lollipop', '🍭']], m: [['moon', '🌙'], ['monkey', '🐒']], n: [['nut', '🥜'], ['nose', '👃']],
+  s: [['sun', '☀️'], ['sock', '🧦']], p: [['pizza', '🍕'], ['pig', '🐷']], f: [['fish', '🐟'], ['frog', '🐸']],
+  r: [['rabbit', '🐰'], ['rocket', '🚀']], sh: [['shoe', '👟'], ['ship', '🚢']],
+  alef: [['esrog', '🍋']], ayin: [['einayim', '👀']],
+  tz: [['tzitzis', '<svg viewBox="0 0 100 100"><path d="M22 8h56a5 5 0 0 1 5 5v47H17V13a5 5 0 0 1 5-5z" fill="#fff" stroke="#aab6c6" stroke-width="2.5"/><ellipse cx="50" cy="17" rx="12" ry="8" fill="#cfe6ff" stroke="#aab6c6" stroke-width="2.5"/><rect x="17" y="42" width="66" height="5" fill="#1d3f8f"/><rect x="17" y="51" width="66" height="3" fill="#1d3f8f"/><g stroke="#5f6f86" stroke-width="3" stroke-linecap="round" fill="none"><path d="M19 60q-1 18 0 35M23 60v37M27 60q1 17 0 33M73 60q-1 17 0 33M77 60v37M81 60q1 18 0 35"/></g><g fill="#5f6f86"><rect x="17" y="66" width="12" height="5" rx="2.5"/><rect x="17" y="75" width="12" height="5" rx="2.5"/><rect x="71" y="66" width="12" height="5" rx="2.5"/><rect x="71" y="75" width="12" height="5" rx="2.5"/></g></svg>']],
+};
+const SOFIS = [13, 16, 18, 23, 25];
+const wordKey = l => SND[l.id] || (l.id === 0 ? 'alef' : 'ayin');   // which picture list a letter is asked with
+const clashKey = l => SND[l.id] || 'silent';                         // letters with the same clash key are never shown together
+const wkey = w => 'w_' + w.replace(/[^a-z]/g, '');
+Object.values(PICS).flat().forEach(([w]) => { CLIPS[w] = wkey(w); preload(wkey(w)); });
+let pTarget = null, pWord = null, pDone = 0, pLock = false;
+function startPics() { pDone = 0; pTarget = null; pWord = null; nextPic(); }
+function nextPic() {
+  newStyle(); pLock = false;
+  const ok = from => from.filter(l => !SOFIS.includes(l.id) && PICS[wordKey(l)] && from.some(o => clashKey(o) !== clashKey(l)));
+  let src = pool(); if (!ok(src).length) src = L;       // if none of his letters has a picture, use the whole Alef Beis
+  const can = ok(src), fresh = can.filter(l => !pTarget || clashKey(l) !== clashKey(pTarget));
+  pTarget = pick(fresh.length ? fresh : can);
+  const key = wordKey(pTarget), words = PICS[key].filter(w => w !== pWord);
+  pWord = pick(words.length ? words : PICS[key]);
+  const opts = shuffle([pTarget, ...shuffle(src.filter(o => clashKey(o) !== clashKey(pTarget))).slice(0, 2)]);
+  dots($('picDots'), pDone, ROUND);
+  const e = $('picEmoji'); if (pWord[1][0] === '<') e.innerHTML = pWord[1]; else e.textContent = pWord[1]; e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop');
+  $('picText').textContent = pWord[0][0].toUpperCase() + pWord[0].slice(1) + '!';
+  const box = $('picChoices'); box.innerHTML = '';
+  opts.forEach(l => {
+    const b = document.createElement('button'); b.className = 'choice heb pop'; b.textContent = l.h; b.style.background = color(l);
+    b.addEventListener('click', () => choosePic(l, b)); box.appendChild(b);
+  });
+  say([pWord[0], 'Which letter does it start with?']);
+}
+function choosePic(l, b) {
+  if (pLock || b.classList.contains('wrong')) return;
+  if (l === pTarget) {
+    stat(pTarget, l);
+    pLock = true; pDone++; b.classList.remove('pop'); b.classList.add('right');
+    sfxYes(); confetti(); addStar(); dots($('picDots'), pDone, ROUND);
+    say([pick([GREAT, 'Yay!']), pWord[0], 'starts with', l]);
+    later(() => { if (current !== 'pics') return; pDone >= ROUND ? finish('pics') : nextPic(); }, 3200);
+  } else {
+    stat(pTarget, l); b.classList.remove('pop'); b.classList.add('wrong'); sfxNo();
+    say(['That is', l, 'Try again!', pWord[0]]);
+  }
+}
+$('picPrompt').addEventListener('click', () => pWord && say([pWord[0], 'Which letter does it start with?']));
 
 /* ---------- Pop the Balloon ----------
    One balloon with the asked-for letter is in the air at a time. Pop it for a star.
@@ -978,7 +1067,7 @@ function swing(l, b) {
     if (home) { bbBase = 0; bbRuns++; umpire('HOME RUN! 🎉'); confetti(34); } else { umpire('HIT!'); confetti(10); }
     drawBaseball();
     say(home ? ['Home run!', GREAT] : ['Hit!', 'Yay!']);
-    setTimeout(() => { if (current !== 'baseball') return; bbRuns >= RUNS_TO_WIN ? finish('baseball') : nextPitch(); }, home ? 3300 : 2200);
+    later(() => { if (current !== 'baseball') return; bbRuns >= RUNS_TO_WIN ? finish('baseball') : nextPitch(); }, home ? 3300 : 2200);
   } else if (++bbStrikes >= 3) {
     /* strikeout: the right ball is shown, the batter is out, and a new pitch comes (or the game ends on the third out) */
     stat(bbTarget, l); statEnd(bbTarget);
@@ -986,7 +1075,7 @@ function swing(l, b) {
     umpire("STRIKE 3! OUT!"); drawBaseball();
     [...$('bbBalls').children].forEach(x => x.firstChild.textContent === bbTarget.h && x.classList.add('show'));
     say(['Strike three, you\'re out!', 'That is', l]);
-    setTimeout(() => { if (current !== 'baseball') return; bbOuts >= OUTS ? finish('baseball', false) : nextPitch(); }, 3800);
+    later(() => { if (current !== 'baseball') return; bbOuts >= OUTS ? finish('baseball', false) : nextPitch(); }, 3800);
   } else {
     stat(bbTarget, l); b.classList.add('wrong'); sfxNo(); umpire('STRIKE ' + bbStrikes + '!');
     say(['Strike!', 'That is', l, ...bbAsk()]);
@@ -1032,7 +1121,7 @@ function throwTo(l, b) {
     const td = fbYard >= 100;
     if (td) { fbTD++; fbYard = 106; umpire('TOUCHDOWN! 🎉', 'fbCall'); confetti(34); } else { umpire('FIRST DOWN!', 'fbCall'); confetti(10); }
     drawFootball(); say(td ? ['Touchdown!', GREAT] : cheer());
-    setTimeout(() => {
+    later(() => {
       if (current !== 'football') return;
       if (td) { if (fbTD >= FB_TDS) return finish('football'); fbYard = 20; }
       nextPlay();
@@ -1044,7 +1133,7 @@ function throwTo(l, b) {
     const over = fbDown >= 4;
     if (over) umpire('TURNOVER!', 'fbCall'); else { umpire('INCOMPLETE!', 'fbCall'); fbDown++; }
     drawFootball(); say([over ? 'Turnover!' : 'Incomplete!', 'That is', l]);
-    setTimeout(() => { if (current !== 'football') return; over ? finish('football', false) : nextPlay(); }, 3400);
+    later(() => { if (current !== 'football') return; over ? finish('football', false) : nextPlay(); }, 3400);
   }
 }
 $('fbPrompt').addEventListener('click', () => fbTarget && sayPlay());
