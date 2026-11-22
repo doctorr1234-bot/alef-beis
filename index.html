@@ -518,20 +518,43 @@ if (document.fonts) Object.values(STYLES).forEach(([, f]) => document.fonts.load
 /* ---------- Progress tracking (for the Parents report) ----------
    For each letter: a = times asked, h = the last 12 results ('1' = right on the first tap, '0' = not),
    x = which other letters were tapped instead and how often, t = when it was last asked. Kept on this device. */
+/* Names and sounds are kept apart: asking "Where is Beis?" tests the name, while "Which letter says b?" and
+   Picture Match test the sound. qKind says which one the current question is. */
 let stats = store.get('ab_stats', {}); if (!stats || typeof stats !== 'object') stats = {};
+let sstats = store.get('ab_sstats', {}); if (!sstats || typeof sstats !== 'object') sstats = {};
+const DB = k => k === 'sound' ? sstats : stats;
+const saveStats = () => { store.set('ab_stats', stats); store.set('ab_sstats', sstats); };
+let qKind = 'name';
 let missedId = null;                       // the letter currently being asked has already had a wrong tap
-const statOf = l => stats[l.id] || (stats[l.id] = { a: 0, h: '', x: {}, t: 0 });
+const statOf = (l, k = qKind) => DB(k)[l.id] || (DB(k)[l.id] = { a: 0, h: '', x: {}, t: 0 });
 function statEnd(target, ok = false) {     // the question is over
   const s = statOf(target); s.a++; s.h = (s.h + (ok ? '1' : '0')).slice(-12); s.t = Date.now();
-  missedId = null; store.set('ab_stats', stats);
+  missedId = null; saveStats();
 }
 function stat(target, tapped) {
   if (tapped === target) return statEnd(target, missedId !== target.id);
-  const s = statOf(target); s.x[tapped.id] = (s.x[tapped.id] || 0) + 1; missedId = target.id; store.set('ab_stats', stats);
+  const s = statOf(target); s.x[tapped.id] = (s.x[tapped.id] || 0) + 1; missedId = target.id; saveStats();
 }
-const score = l => { const s = stats[l.id]; return s && s.h.length ? Math.round(100 * [...s.h].filter(c => c === '1').length / s.h.length) : null; };
+const score = (l, k = 'name') => { const s = DB(k)[l.id]; return s && s.h.length ? Math.round(100 * [...s.h].filter(c => c === '1').length / s.h.length) : null; };
 /* 'work' = under 70% right first time, 'ok' = 70–89%, 'good' = 90%+, 'new' = asked fewer than 3 times, 'none' = never asked */
-const level = l => { const s = stats[l.id], p = score(l); return !s || !s.a ? 'none' : s.h.length < 3 ? 'new' : p < 70 ? 'work' : p < 90 ? 'ok' : 'good'; };
+const level = (l, k = 'name') => { const s = DB(k)[l.id], p = score(l, k); return !s || !s.a ? 'none' : s.h.length < 3 ? 'new' : p < 70 ? 'work' : p < 90 ? 'ok' : 'good'; };
+
+/* ---------- Smart practice ----------
+   When on (the default), every game picks the letter to ask by how well he knows it: letters that need work come up
+   about five times as often as letters he knows well, and a letter he just missed comes back soon. Known letters
+   still come up now and then so they stay fresh. */
+let smart = store.get('ab_smart', true);
+const WEIGHT = { none: 3, new: 3, work: 5, ok: 2, good: 1 };
+function weight(l, k) {
+  const s = DB(k)[l.id], w = WEIGHT[level(l, k)];
+  return s && s.h.endsWith('0') ? w + 3 : w;
+}
+function smartPick(list, k = 'name') {
+  if (!smart || list.length < 2) return pick(list);
+  const ws = list.map(l => weight(l, k)); let r = Math.random() * ws.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < list.length; i++) if ((r -= ws[i]) < 0) return list[i];
+  return list[list.length - 1];
+}
 
 /* ---------- Sound ---------- */
 let actx;
@@ -626,11 +649,11 @@ function makeQ(prev, n) {
   if (askMode === 'sound' || (askMode === 'mix' && Math.random() < .5)) {
     const can = p.filter(l => SND[l.id] && l !== prev && p.some(o => SND[o.id] !== SND[l.id]));
     if (can.length) {
-      const t = pick(can), others = shuffle(p.filter(o => SND[o.id] !== SND[t.id])).slice(0, n - 1);
+      const t = smartPick(can, 'sound'), others = shuffle(p.filter(o => SND[o.id] !== SND[t.id])).slice(0, n - 1);
       return { t, snd: SND[t.id], opts: shuffle([t, ...others]) };
     }
   }
-  const t = pick(p.filter(l => l !== prev));
+  const t = smartPick(p.filter(l => l !== prev));
   return { t, snd: null, opts: shuffle([t, ...shuffle(p.filter(l => l !== t)).slice(0, Math.min(n, p.length) - 1)]) };
 }
 const showSnd = k => '\u201c' + SOUNDS[k][0] + '\u201d';
@@ -847,14 +870,14 @@ function twinFamilies() {
 let fTarget = null, fDone = 0, fStreak = 0, fLock = false, fMode = 'find';
 function startFind() { fDone = 0; fStreak = 0; fTarget = null; nextFind(); }
 function nextFind() {
-  newStyle(); fLock = false; let opts;
+  newStyle(); fLock = false; qKind = 'name'; let opts;
   if (fMode === 'twins') {
     const fams = twinFamilies(), fam = pick(fams);
     const askable = fam.filter(l => chosen.includes(l.id)), from = askable.length ? askable : fam;
-    fTarget = pick(from.length > 1 ? from.filter(l => l !== fTarget) : from); opts = shuffle(fam);
+    fTarget = smartPick(from.length > 1 ? from.filter(l => l !== fTarget) : from); opts = shuffle(fam);
   } else {
     const p = pool();
-    fTarget = pick(p.filter(l => l !== fTarget));
+    fTarget = smartPick(p.filter(l => l !== fTarget));
     const n = Math.min(fStreak >= 3 ? 4 : 3, p.length);
     opts = shuffle([fTarget, ...shuffle(p.filter(l => l !== fTarget)).slice(0, n - 1)]);
   }
@@ -914,13 +937,13 @@ function nextPic() {
   newStyle(); pLock = false;
   const ok = from => from.filter(l => !SOFIS.includes(l.id) && !NOPIC.includes(l.id) && PICS[wordKey(l)] && from.some(o => clashKey(o) !== clashKey(l)));
   let src = pool(); if (!ok(src).length) src = L;       // if none of his letters has a picture, use the whole Alef Beis
-  /* every picture for his letters comes up once before any picture repeats (the list carries over between rounds) */
-  const can = ok(src), all = [];
-  can.forEach(l => PICS[wordKey(l)].forEach(w => all.push([l, w])));
-  let left = all.filter(([, w]) => !pSeen.has(w[0]));
-  if (!left.length) { pSeen.clear(); left = all; }
-  const fresh = left.filter(([l, w]) => w !== pWord && (!pTarget || clashKey(l) !== clashKey(pTarget)));
-  [pTarget, pWord] = pick(fresh.length ? fresh : left); pSeen.add(pWord[0]);
+  /* the letter is picked by Smart practice (or at random); then its pictures take turns, so each is seen before one repeats */
+  qKind = 'sound';
+  const can = ok(src), fresh = can.filter(l => !pTarget || clashKey(l) !== clashKey(pTarget));
+  pTarget = smartPick(fresh.length ? fresh : can, 'sound');
+  const ws = PICS[wordKey(pTarget)]; let unseen = ws.filter(w => !pSeen.has(w[0]));
+  if (!unseen.length) { ws.forEach(w => pSeen.delete(w[0])); unseen = ws; }
+  pWord = pick(unseen.length > 1 ? unseen.filter(w => w !== pWord) : unseen); pSeen.add(pWord[0]);
   const opts = shuffle([pTarget, ...shuffle(src.filter(o => clashKey(o) !== clashKey(pTarget))).slice(0, 2)]);
   dots($('picDots'), pDone, ROUND);
   const e = $('picEmoji'); if (pWord[1][0] === '<') e.innerHTML = pWord[1]; else e.textContent = pWord[1]; e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop');
@@ -964,7 +987,7 @@ function drawBalloonHud() {
   $('balHearts').textContent = '❤️'.repeat(bLives) + '🤍'.repeat(HEARTS - bLives);
 }
 function setBalloonTarget() {
-  bTarget = pick(pool().filter(l => l !== bTarget));
+  qKind = 'name'; bTarget = smartPick(pool().filter(l => l !== bTarget));
   $('balText').textContent = 'Pop ' + bTarget.n + '!';
   /* A balloon with this letter may already be floating. It only "counts" (and can cost a heart) if it is still
      in the lower part of the screen with plenty of time to be popped; otherwise a fresh one is sent up right away. */
@@ -1052,7 +1075,7 @@ function umpire(text, id = 'bbCall') { const c = $(id); c.textContent = text; c.
 function nextPitch() {
   newStyle(); bbLock = false; bbStrikes = 0;
   const q = makeQ(bbTarget, bbFour ? 4 : 3), opts = q.opts, n = opts.length;
-  bbTarget = q.t; bbSnd = q.snd;
+  bbTarget = q.t; bbSnd = q.snd; qKind = q.snd ? 'sound' : 'name';
   $('bbText').textContent = bbSnd ? 'Hit the one that says ' + showSnd(bbSnd) + '!' : 'Hit ' + bbTarget.n + '!';
   const box = $('bbBalls'); box.innerHTML = ''; box.classList.toggle('four', n === 4);
   opts.forEach((l, i) => {
@@ -1110,7 +1133,7 @@ function sayPlay() { say(fbSnd ? ['Throw it to the letter that says', { snd: fbS
 function nextPlay() {
   newStyle(); fbLock = false;
   const q = makeQ(fbTarget, 4), opts = q.opts;
-  fbTarget = q.t; fbSnd = q.snd;
+  fbTarget = q.t; fbSnd = q.snd; qKind = q.snd ? 'sound' : 'name';
   $('fbText').textContent = fbSnd ? 'Throw it to the one that says ' + showSnd(fbSnd) + '!' : 'Throw it to ' + fbTarget.n + '!';
   const box = $('fbPlayers'); box.innerHTML = '';
   opts.forEach((l, i) => {
@@ -1164,32 +1187,51 @@ function loadRecs() {
 openDb().then(loadRecs);
 
 function drawReport() {
-  const box = $('report'), by = lv => L.filter(l => level(l) === lv), names = a => a.map(l => l.h + ' ' + l.n).join(', ');
-  const asked = L.reduce((n, l) => n + (stats[l.id] ? stats[l.id].a : 0), 0);
-  if (!asked) { box.innerHTML = '<p>Nothing to report yet. Once the games have been played, this shows which letters he knows and which need work.</p>'; return; }
-  const recent = L.flatMap(l => stats[l.id] ? [...stats[l.id].h] : []), pct = Math.round(100 * recent.filter(c => c === '1').length / recent.length);
-  const last = Math.max(...L.map(l => stats[l.id] ? stats[l.id].t : 0));
-  const work = by('work').sort((a, b) => score(a) - score(b)), ok = by('ok'), good = by('good'), fresh = by('new'), none = by('none');
-  const pairs = {};                                   // mix-ups, counted in both directions
-  L.forEach(l => Object.entries((stats[l.id] || {}).x || {}).forEach(([o, n]) => { const k = [l.id, +o].sort((a, b) => a - b).join('-'); pairs[k] = (pairs[k] || 0) + n; }));
-  const mix = Object.entries(pairs).filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]).slice(0, 6);
-  const esc = t => t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-  let h = '<div class="sum"><div><b>' + pct + '%</b><small>right on the first tap (recent)</small></div><div><b>' + asked + '</b><small>questions answered</small></div><div><b>' +
-    good.length + ' / ' + L.length + '</b><small>letters he knows well</small></div><div><b>' + new Date(last).toLocaleDateString() + '</b><small>last played</small></div></div>';
-  h += '<h4>Needs work</h4>' + (work.length ? '<ul>' + work.map(l => '<li><b>' + esc(l.h + ' ' + l.n) + '</b>: right first time ' + score(l) + '% of the last ' + stats[l.id].h.length + '</li>').join('') + '</ul>'
-    : '<p>No letter is under 70% right now.</p>');
-  if (mix.length) h += '<h4>Letters he mixes up</h4><ul>' + mix.map(([k, n]) => { const [a, b] = k.split('-').map(i => L[i]); return '<li>' + esc(a.h + ' ' + a.n + ' and ' + b.h + ' ' + b.n) + ' (' + n + ' times)</li>'; }).join('') + '</ul>';
-  if (ok.length) h += '<h4>Getting there</h4><p>' + esc(names(ok)) + '</p>';
-  if (good.length) h += '<h4>Knows well</h4><p>' + esc(names(good)) + '</p>';
-  if (none.length) h += '<h4>Not practiced yet</h4><p>' + esc(names(none)) + '</p>';
-  h += '<h4>Every letter</h4><div class="key"><span><i style="background:#e5383b"></i>needs work (under 70%)</span><span><i style="background:#f4a300"></i>getting there</span><span><i style="background:#06b77c"></i>knows well (90%+)</span><span><i style="background:#c9c4e6"></i>just started</span><span><i style="background:#ddd"></i>not practiced</span></div><div class="rep">' +
-    L.map(l => { const s = stats[l.id], lv = level(l); return '<div class="' + lv + '"><span class="heb">' + l.h + '</span><small>' + (lv === 'none' ? '–' : score(l) + '% · ' + s.a + '×') + '</small></div>'; }).join('') + '</div>' +
-    '<p style="font-size:13px">Each tile shows how often he got the letter right on the first tap, over the last 12 times it was asked, and how many times it has been asked in all.</p>';
-  box.innerHTML = h;
+  const box = $('report'), esc = t => t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const names = a => esc(a.map(l => l.h + ' ' + l.n).join(', '));
+  const all = k => L.filter(l => DB(k)[l.id] && DB(k)[l.id].a);
+  const asked = ['name', 'sound'].reduce((n, k) => n + L.reduce((m, l) => m + (DB(k)[l.id] ? DB(k)[l.id].a : 0), 0), 0);
   const add = (label, fn, lite) => { const b = document.createElement('button'); b.className = 'plain' + (lite ? ' lite' : ''); b.textContent = label; b.addEventListener('click', fn); box.appendChild(b); };
-  const focus = [...work, ...ok];
+  const smartBox = () => {
+    const p = document.createElement('p');
+    p.innerHTML = smart ? '<b>Smart practice is on.</b> Every game asks more often about the letters he finds hard (and a letter right after he misses it), and less often about the ones he knows well. Known letters still come up now and then so he keeps them.'
+      : '<b>Smart practice is off.</b> The games pick from his letters at random.';
+    box.appendChild(p);
+    add(smart ? 'Turn Smart practice off' : 'Turn Smart practice on', () => { smart = !smart; store.set('ab_smart', smart); drawParents(); }, smart);
+  };
+  if (!asked) { box.innerHTML = '<p>Nothing to report yet. Once the games have been played, this shows which letters and sounds he knows and which need work.</p>'; smartBox(); return; }
+  const hist = ['name', 'sound'].flatMap(k => L.flatMap(l => DB(k)[l.id] ? [...DB(k)[l.id].h] : []));
+  const pct = Math.round(100 * hist.filter(c => c === '1').length / hist.length);
+  const last = Math.max(...['name', 'sound'].flatMap(k => L.map(l => DB(k)[l.id] ? DB(k)[l.id].t : 0)));
+  const goodN = L.filter(l => level(l) === 'good').length, goodS = L.filter(l => level(l, 'sound') === 'good').length;
+  let h = '<div class="sum"><div><b>' + pct + '%</b><small>right on the first tap (recent)</small></div><div><b>' + asked + '</b><small>questions answered</small></div><div><b>' +
+    goodN + ' / ' + L.length + '</b><small>names he knows well</small></div><div><b>' + goodS + ' / ' + L.length + '</b><small>sounds he knows well</small></div><div><b>' +
+    new Date(last).toLocaleDateString() + '</b><small>last played</small></div></div>';
+  const section = (k, title, what) => {
+    if (!all(k).length) return '<h3 style="margin-top:18px">' + title + '</h3><p>Not practiced yet. ' + (k === 'sound' ? 'Sounds are practiced in Picture Match, and in Baseball and Football when they ask by sound.' : '') + '</p>';
+    const by = lv => L.filter(l => level(l, k) === lv);
+    const work = by('work').sort((a, b) => score(a, k) - score(b, k)), ok = by('ok'), good = by('good'), none = by('none');
+    const pairs = {};                                 // mix-ups, counted in both directions
+    L.forEach(l => Object.entries((DB(k)[l.id] || {}).x || {}).forEach(([o, n]) => { const key = [l.id, +o].sort((a, b) => a - b).join('-'); pairs[key] = (pairs[key] || 0) + n; }));
+    const mix = Object.entries(pairs).filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    let t = '<h3 style="margin-top:18px">' + title + '</h3>';
+    t += '<h4>Needs work</h4>' + (work.length ? '<ul>' + work.map(l => '<li><b>' + esc(l.h + ' ' + l.n) + '</b>' + (k === 'sound' && SND[l.id] ? ' (' + esc(showSnd(SND[l.id])) + ')' : '') + ': right first time ' + score(l, k) + '% of the last ' + DB(k)[l.id].h.length + '</li>').join('') + '</ul>'
+      : '<p>No ' + what + ' is under 70% right now.</p>');
+    if (mix.length) t += '<h4>Mix-ups</h4><ul>' + mix.map(([key, n]) => { const [a, b] = key.split('-').map(i => L[i]); return '<li>' + esc(a.h + ' ' + a.n + ' and ' + b.h + ' ' + b.n) + ' (' + n + ' times)</li>'; }).join('') + '</ul>';
+    if (ok.length) t += '<h4>Getting there</h4><p>' + names(ok) + '</p>';
+    if (good.length) t += '<h4>Knows well</h4><p>' + names(good) + '</p>';
+    if (none.length) t += '<h4>Not practiced yet</h4><p>' + names(none) + '</p>';
+    t += '<div class="rep">' + L.map(l => { const st = DB(k)[l.id], lv = level(l, k); return '<div class="' + lv + '"><span class="heb">' + l.h + '</span><small>' + (lv === 'none' ? '–' : score(l, k) + '% · ' + st.a + '×') + '</small></div>'; }).join('') + '</div>';
+    return t;
+  };
+  h += '<div class="key"><span><i style="background:#e5383b"></i>needs work (under 70%)</span><span><i style="background:#f4a300"></i>getting there</span><span><i style="background:#06b77c"></i>knows well (90%+)</span><span><i style="background:#c9c4e6"></i>just started</span><span><i style="background:#ddd"></i>not practiced</span></div>';
+  h += section('name', 'Letter names', 'letter name') + section('sound', 'Letter sounds', 'letter sound');
+  h += '<p style="font-size:13px">Each tile shows how often he got it right on the first tap, over the last 12 times it was asked, and how many times it has been asked in all.</p>';
+  box.innerHTML = h;
+  smartBox();
+  const focus = L.filter(l => ['work', 'ok'].includes(level(l)) || ['work', 'ok'].includes(level(l, 'sound')));
   if (focus.length >= MIN_LETTERS) add('Practice only the letters that need work (' + focus.length + ')', () => setChosen(focus.map(l => l.id)));
-  add('Clear the report', () => { if (confirm('Clear all of the progress records?')) { stats = {}; store.set('ab_stats', stats); drawParents(); } }, true);
+  add('Clear the report', () => { if (confirm('Clear all of the progress records?')) { stats = {}; sstats = {}; saveStats(); drawParents(); } }, true);
 }
 function drawParents() {
   drawReport(); document.querySelectorAll('.kidname').forEach(e => e.textContent = KID);
